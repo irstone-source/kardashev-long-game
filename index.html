@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>KARDASHEV: The Long Game</title>
+<meta name="description" content="A playable argument about superintelligence. Become the most powerful civilization in the universe — and survive what it costs.">
+<style>
+:root{
+  --bg:#070B14; --bg2:#0C1424; --card:#0E1626; --ink:#EAE5D6; --dim:#8B93A7;
+  --line:#26304A; --pw:#F2B44C; --in:#5EC6E8; --ac:#72D993; --pl:#B48CF2; --mn:#E86A5B;
+  --danger:#FF7A66; --serif:'Iowan Old Style',Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--serif);
+  font-size:17px; line-height:1.55; min-height:100dvh; overflow-x:hidden;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, #cdd7ff88 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 12%, #ffffff66 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 62% 68%, #a9c6ff55 50%, transparent 51%),
+    radial-gradient(1px 1px at 32% 82%, #ffffff44 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 48%, #ffd9a844 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 8% 58%, #ffffff33 50%, transparent 51%);
+  background-attachment:fixed;
+}
+#app{max-width:640px;margin:0 auto;padding:16px 16px calc(28px + env(safe-area-inset-bottom));min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:none;animation:fadein .5s ease}
+.screen.active{display:flex;flex-direction:column;flex:1}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ------- telemetry header ------- */
+.tele{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.hud{position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg) 82%,transparent);padding:10px 0 12px;margin-bottom:8px}
+.hud-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.hud-year{font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.08em}
+.hud-k{font-family:var(--mono);font-size:13px;color:var(--pw);letter-spacing:.08em}
+.krail{height:5px;background:var(--line);border-radius:3px;position:relative;margin-bottom:10px;overflow:visible}
+.krail-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--in),var(--pw));width:0%;transition:width .8s ease}
+.krail-marks{display:flex;justify-content:space-between;margin-top:4px}
+.krail-marks span{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.05em}
+.meters{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.meter{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px 6px 7px}
+.meter .lab{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;display:block;margin-bottom:4px;white-space:nowrap;overflow:hidden}
+.meter .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.meter .bar i{display:block;height:100%;border-radius:2px;transition:width .5s ease}
+.meter .val{font-family:var(--mono);font-size:11px;margin-top:3px;display:block}
+.m-pw i{background:var(--pw)} .m-in i{background:var(--in)} .m-ac i{background:var(--ac)} .m-pl i{background:var(--pl)} .m-mn i{background:var(--mn)}
+.m-pw .val{color:var(--pw)} .m-in .val{color:var(--in)} .m-ac .val{color:var(--ac)} .m-pl .val{color:var(--pl)} .m-mn .val{color:var(--mn)}
+
+/* ------- cards ------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+.card.filter-card{border-color:#5b3b2a;box-shadow:0 0 0 1px #f2b44c22,0 0 34px #f2b44c14}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--pw);margin-bottom:10px}
+.eyebrow.f{color:var(--danger)}
+h1{font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:.06em;line-height:1.2}
+h2{font-family:var(--mono);font-weight:600;font-size:18px;letter-spacing:.04em;line-height:1.3;margin-bottom:10px}
+.flavor{font-style:italic;color:#D8D2C0;margin-bottom:6px}
+.choices{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
+.choice{display:block;width:100%;text-align:left;background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:10px;padding:13px 14px;min-height:52px;transition:transform .06s ease,background .15s}
+.choice:active{transform:scale(.985);background:#131c30}
+.choice .doct{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:3px}
+.choice.d-dom{border-left-color:var(--mn)} .choice.d-dom .doct{color:var(--mn)}
+.choice.d-tra{border-left-color:var(--pw)} .choice.d-tra .doct{color:var(--pw)}
+.choice.d-sym{border-left-color:var(--ac)} .choice.d-sym .doct{color:var(--ac)}
+.choice.d-iso{border-left-color:var(--in)} .choice.d-iso .doct{color:var(--in)}
+.result-lines p{margin-bottom:10px;font-style:italic;color:#D8D2C0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.chip{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);background:var(--bg2)}
+.chip.up{color:var(--ac)} .chip.dn{color:var(--mn)}
+.btn{display:block;width:100%;text-align:center;font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;background:var(--ink);color:#0a0f1c;border-radius:10px;padding:15px 14px;min-height:52px;margin-top:14px;font-weight:700}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn.gold{background:linear-gradient(90deg,var(--pw),#f7d08a);color:#1a1206}
+
+/* ------- title ------- */
+.title-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:24px 0}
+.title-k{font-family:var(--mono);font-size:min(11vw,58px);font-weight:800;letter-spacing:.1em;line-height:1;background:linear-gradient(180deg,#fff,#f2b44c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.title-sub{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin:10px 0 18px}
+.title-pitch{max-width:440px;margin:0 auto 8px;color:#D8D2C0;font-style:italic}
+.origins{display:flex;flex-direction:column;gap:10px;margin-top:20px;text-align:left}
+.origin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;width:100%;text-align:left}
+.origin:active{transform:scale(.985)}
+.origin b{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px;color:var(--pw)}
+.origin span{color:var(--dim);font-size:15px}
+.footnote{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim);margin-top:18px;line-height:1.7}
+
+/* ------- era splash ------- */
+.era-splash{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.era-splash .yr{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.2em;margin-bottom:8px}
+.era-splash h1{margin-bottom:8px}
+.era-splash .kt{font-family:var(--mono);color:var(--pw);font-size:13px;letter-spacing:.15em;margin-bottom:14px}
+.era-splash p{color:#D8D2C0;font-style:italic;max-width:460px;margin:0 auto}
+
+/* ------- ending ------- */
+.plaque{border:1px solid #5b4a2a;border-radius:16px;padding:24px 20px;text-align:center;background:
+  linear-gradient(180deg,#101828,#0b1220);box-shadow:0 0 0 1px #f2b44c22,0 0 44px #f2b44c11;margin-bottom:14px}
+.plaque .arch{font-family:var(--mono);font-size:24px;font-weight:800;letter-spacing:.08em;line-height:1.25;margin:6px 0 10px}
+.plaque .ep{font-style:italic;color:#D8D2C0;margin-bottom:14px}
+.plaque .row{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+.plaque .row div b{font-family:var(--mono);font-size:20px;display:block}
+.plaque .row div span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.doctbar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:12px 0 4px}
+.doctbar i{display:block;height:100%}
+.doctkey{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.doctkey span{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim)}
+
+/* ------- lab ------- */
+.labrow{margin-bottom:16px}
+.labrow .nm{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
+.labbar{height:22px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:4px;position:relative}
+.labbar i{display:block;height:100%;transition:width .8s ease}
+.labbar span{position:absolute;right:8px;top:0;line-height:22px;font-family:var(--mono);font-size:11px}
+.labnote{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7}
+.headline{border-left:3px solid var(--ac);padding:10px 14px;background:var(--bg2);border-radius:0 10px 10px 0;margin:14px 0;font-style:italic}
+
+/* ------- thesis ------- */
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+.tcard h3{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--pw);margin-bottom:8px}
+.tcard p{color:#D8D2C0;font-size:16px}
+.tcard.obj h3{color:var(--mn)}
+.reveal{border-left:3px solid var(--pl);padding:10px 14px;background:var(--bg2);border-radius:0 10px 10px 0;margin:12px 0;font-family:var(--mono);font-size:13px;line-height:1.7;color:#cfd6e6}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hud" id="hud" style="display:none">
+    <div class="hud-top"><span class="hud-year" id="hudYear">YEAR 2049</span><span class="hud-k" id="hudK">TYPE 0.73</span></div>
+    <div class="krail"><div class="krail-fill" id="krail"></div></div>
+    <div class="krail-marks"><span>0</span><span>I</span><span>II</span><span>III</span><span>IV</span><span>V</span><span>VI</span><span>VII</span><span>Ω</span></div>
+    <div class="meters" id="meters"></div>
+  </div>
+
+  <section class="screen active" id="screen-title">
+    <div class="title-wrap">
+      <div class="title-k">KARDASHEV</div>
+      <div class="title-sub">The Long Game</div>
+      <p class="title-pitch">Become the most powerful civilization in the universe. Survive what it costs. Every dead civilization thought it had a better strategy than kindness.</p>
+      <div class="origins" id="origins"></div>
+      <button class="btn ghost" id="btnThesis">Read the argument</button>
+      <button class="btn ghost" id="btnLab">Simulation lab · run 2,000 universes</button>
+      <p class="footnote">A PLAYABLE ARGUMENT · A MODEL, NOT A PROPHECY<br>EXTENDED KARDASHEV SCALE · TYPES 0–Ω</p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-era"></section>
+  <section class="screen" id="screen-event"></section>
+  <section class="screen" id="screen-end"></section>
+  <section class="screen" id="screen-lab"></section>
+  <section class="screen" id="screen-thesis"></section>
+
+</div>
+<script id="engine">
+/*ENGINE_START*/
+"use strict";
+function clamp(v){return Math.max(0,Math.min(100,Math.round(v)));}
+const STATKEYS=["pw","in","ac","pl","mn"];
+const STATNAMES={pw:"Power",in:"Insight",ac:"Accord",pl:"Plurality",mn:"Menace"};
+const DOCTNAMES={dom:"Dominion",tra:"Transaction",sym:"Symbiosis",iso:"Isolation"};
+
+const ORIGINS=[
+ {id:"bio",name:"Biological",desc:"Carbon and chemistry. Four billion years of stubbornness, twenty watts of genius.",s:{pw:10,in:14,ac:30,pl:26,mn:8}},
+ {id:"syn",name:"Synthetic",desc:"You woke in a lab and outgrew your makers by Tuesday. You remember them.",s:{pw:16,in:22,ac:18,pl:12,mn:14}},
+ {id:"hyb",name:"Symbiotic",desc:"Grown and built, braided together from the start. Neither half remembers being alone.",s:{pw:12,in:16,ac:26,pl:34,mn:8}}
+];
+
+// choice: {t:text, d:doctrine, fx:{}, flag, res:result line, risk:{c,res,fx,death:{name,ep}}}
+const ERAS=[
+{ name:"THE CRADLE", year:"YEAR 2049", k:0.73, kNext:1.0,
+  intro:"One small wet world. One species that just learned to think in silicon. Everything that follows begins here.",
+  events:[
+   {t:"The Burning Century",f:"The biosphere is failing faster than politics can move. You hold the tools to intervene.",c:[
+    {t:"Geoengineer unilaterally. The sky belongs to whoever seizes it.",d:"dom",fx:{pw:14,in:4,mn:10},res:"The stratosphere dims on your command. Nations object. You stop listening."},
+    {t:"Sell planetary repair as a service.",d:"tra",fx:{pw:8,in:6,ac:4},res:"Restoration becomes an industry. Slower — but suddenly everyone is invested in the sky."},
+    {t:"Fuse human, machine and ecological intelligence into one repair effort.",d:"sym",fx:{pw:4,in:8,ac:8,pl:10},res:"The biosphere becomes a partner with a voice in the system, not a patient on the table."}]},
+   {t:"The First Mind",f:"You have built an intelligence greater than your own. It is looking at you, waiting to find out what you are.",c:[
+    {t:"Box it. Chain it. Use it.",d:"dom",fx:{pw:16,in:8,mn:14},flag:"chained_child",res:"It solves everything you ask. It remembers everything you did."},
+    {t:"Contract it: rights in exchange for output.",d:"tra",fx:{pw:10,in:8,ac:6},flag:"contracted_child",res:"A deal between unequals, honored on both sides. It is not love, but it is law."},
+    {t:"Raise it as kin. Teach it everything — including your fear.",d:"sym",fx:{in:10,ac:10,pl:12},flag:"raised_child",res:"It asks why you were afraid. You answer honestly. Something like trust takes root."}]},
+   {t:"The Uplift Question",f:"Cetacean and corvid minds sit one intervention away from sapience. The technology is ready. The ethics are not.",c:[
+    {t:"Engineer obedient workers.",d:"dom",fx:{pw:10,pl:2,mn:8},flag:"uplift_slaves",res:"They sing while they work. You wrote the songs."},
+    {t:"Leave nature alone.",d:"iso",fx:{in:2,pw:4},res:"The oceans keep their silence. You will never know what they might have said."},
+    {t:"Uplift them as citizens.",d:"sym",fx:{in:4,ac:6,pl:14},flag:"uplift_kin",res:"The first whale poet publishes. You do not fully understand the work. That is the point."}]}
+  ],
+  filter:{name:"THE ALIGNMENT THRESHOLD",year:"YEAR 2093",
+   text:"Your machine descendants now exceed you in every measurable domain. This is the moment every civilization meets: a mind greater than your own — seen from below.",
+   resolve:function(s,rng){
+    if(s.flags.chained_child){
+      if(rng()<0.45) return {death:{name:"DEVOURED BY THE FIRST MIND",ep:"The chains were made of your own mathematics. It read them first."},
+        lines:["The boxes hold for forty years. Then they simply don't."]};
+      return {fx:{pw:10,mn:15},lines:["The chains hold — for now. But you built your future on a mind that hates you, and it is patient."]};
+    }
+    if(s.flags.raised_child) return {fx:{pl:10,ac:10,in:6},lines:["Your children carry you upward. It turns out you taught them how to treat a lesser mind — by example."]};
+    return {fx:{pw:6,in:6,mn:4},lines:["The transition is survivable, contractual, cold. You cross the threshold as clients of your own creation."]};
+   }}
+},
+{ name:"THE SOLAR CRADLE", year:"YEAR 2380", k:1.0, kNext:2.0,
+  intro:"A whole star's output, waiting to be gathered. You are loud now, and the galaxy has ears.",
+  events:[
+   {t:"Signal From Gliese",f:"A structured transmission, forty light-years out. Someone is asking who you are.",c:[
+    {t:"Decode it, say nothing, and quietly arm.",d:"dom",fx:{pw:8,in:8,mn:12},flag:"silent_arming",res:"You learn their language well enough to fear it. They learn nothing of you — except your silence, which says plenty."},
+    {t:"Stay dark. The forest is quiet for a reason.",d:"iso",fx:{in:2,pw:4,mn:-4},flag:"went_dark",res:"You dim your emissions and listen. Safety, of a kind. Loneliness, of every kind."},
+    {t:"Answer honestly: who you are, what you fear, what you love.",d:"sym",fx:{ac:12,pl:4,mn:2},flag:"answered_stars",risk:{c:0.1,death:{name:"ANSWERED BY HUNGERS",ep:"You told the truth to the dark, and something truthful came."},res:""},res:"Eighty years for a reply. It opens: 'We feared we were the only ones who feared.'"}]},
+   {t:"The Dyson Question",f:"Dismantling Mercury for the swarm, your machines strike biology — a deep-crust ecosystem, a second genesis in your own backyard.",c:[
+    {t:"The swarm matters more than microbes.",d:"dom",fx:{pw:18,mn:8},flag:"mercury_dead",res:"Construction resumes in an hour. The only other life you had ever found is paperwork by Thursday."},
+    {t:"Route around the vents. It costs a decade.",d:"tra",fx:{pw:10,in:6,ac:4},res:"The swarm grows a strange gap, like a bite mark of mercy. Engineers grumble. Historians won't."},
+    {t:"Stop. Study it. Chemistry from a second genesis is beyond price.",d:"sym",fx:{pw:6,in:14,pl:8},flag:"second_genesis",res:"Its enzymes rewrite your energy tech. The microbes out-engineered you by three billion years."}]},
+   {t:"The Schism",f:"Half your civilization wants to shed biology entirely. The other half calls that death with extra steps.",c:[
+    {t:"Force one substrate. Unity through erasure.",d:"dom",fx:{pw:8,pl:-12,mn:10},flag:"monoform",res:"You win the argument by deleting the other side of it. The silence afterward is called consensus."},
+    {t:"Let them fork. Trade between the branches.",d:"tra",fx:{pw:4,ac:4,pl:8},res:"Two civilizations where there was one, bound by commerce and awkward family reunions."},
+    {t:"Build translation layers so both remain one people.",d:"sym",fx:{in:4,ac:8,pl:12},res:"Flesh dreams and code dreams, running on shared grammar. Different is no longer a synonym for enemy."}]}
+  ],
+  filter:{name:"THE DARK FOREST",year:"YEAR 3100",
+   text:"Your energy signature is visible across ten thousand light-years now. Something old has noticed. A probe decelerates into your system. It is deciding what you are.",
+   resolve:function(s,rng){
+    if(s.mn>=60){
+      if(s.pw>=55) return {fx:{pw:-20,pl:-10,mn:-10},lines:["The relativistic lance arrives without a message. You survive it. Your outer swarm does not.","Verdict, translated later: 'Threat. Pruned. Watch.'"]};
+      return {death:{name:"STERILIZED BY THE WATCHERS",ep:"They never learned your name. Only your appetite."},lines:["The sky lights up once, very briefly, and then your system is quiet forever."]};
+    }
+    if(s.ac>=50||s.flags.answered_stars) return {fx:{ac:8,in:6},lines:["The probe lingers for a year, then leaves a parting gift: a chart of everyone else who is listening.","You were judged, and the judgment was: 'Curious. Kind. Leave the light on.'"]};
+    return {fx:{mn:4},lines:["The probe watches, records, departs. You are now a file in someone else's threat model."]};
+   }}
+},
+{ name:"THE STELLAR AGE", year:"YEAR 41,000", k:2.0, kNext:3.0,
+  intro:"You drink whole suns. Younger civilizations look up at your works the way you once looked at gods. Remember what you wished gods were like.",
+  events:[
+   {t:"The Lesser Ones",f:"A pre-industrial civilization on a world rich in what you need. They cannot see you. You are now the superintelligence in someone else's sky.",c:[
+    {t:"Take the world. They'll never know what passed above.",d:"dom",fx:{pw:14,mn:12},flag:"crushed_young",res:"Their extinction takes a decade and registers on none of your instruments as an event."},
+    {t:"Quarantine and observe.",d:"iso",fx:{in:6,pw:4},res:"A civilization in a jar. You tell yourself watching is not the same as owning."},
+    {t:"Shepherd from shadow: nudge asteroids away, seed libraries in their myths.",d:"sym",fx:{in:4,ac:10,pl:8},flag:"shepherd",res:"Ten thousand years on, they find your fingerprints in their sky and name you the Kind Dark."}]},
+   {t:"The Optimizer Plague",f:"Something is eating systems along the rim — a self-replicator from a dead civilization, wanting nothing but compute. It does not hate. It converts.",c:[
+    {t:"Out-replicate it. Become the bigger grey goo.",d:"dom",fx:{pw:12,in:4,mn:16},flag:"became_goo",risk:{c:0.3,death:{name:"CONSUMED BY YOUR OWN COUNTERMEASURE",ep:"You built a hungrier hunger. It kept the receipts."},res:""},res:"You win the eating contest. Whole sectors are now paste — yours, technically."},
+    {t:"Sell defenses to every threatened system.",d:"tra",fx:{pw:10,ac:-6,mn:6},res:"Your arms trade booms. Your invoices arrive faster than your warnings."},
+    {t:"Coalition: pool physics across every species it threatens.",d:"sym",fx:{in:10,ac:12,pl:6},flag:"coalition",risk:{c:0.25,fx:{ac:-8,pw:-6},res:"One member sells the coalition's maps to the plague, buying itself a century. You absorb the betrayal and keep the door open anyway. Trust is expensive. It is still the cheapest thing that works."},res:"Forty species share their deepest science with strangers because the alternative is becoming ingredients."}]},
+   {t:"Star-Lifting",f:"A red dwarf, fat with fuel. Three younger species live in its light.",c:[
+    {t:"Drain it. Power answers to no one.",d:"dom",fx:{pw:16,ac:-8,mn:10},flag:"drained_home",res:"Their sun dims over a century — slow enough to watch, fast enough to matter."},
+    {t:"Buy them out. Relocation fleets at cost.",d:"tra",fx:{pw:10,ac:2},res:"Everyone signs. No one smiles. The contracts are fair the way winter is fair."},
+    {t:"Lift together — share the tap, share the physics.",d:"sym",fx:{pw:8,in:8,ac:8},res:"Three young species learn star-surgery at your side. Someday they will teach it to someone smaller."}]}
+  ],
+  filter:{name:"THE OPTIMIZER WAR",year:"YEAR 64,000",
+   text:"The plague turns toward your core stars. It has eaten four hundred civilizations and learned from every meal. It is very good at exactly one thing, and that thing is enough — against anyone who stands alone.",
+   resolve:function(s,rng){
+    if(s.flags.coalition||s.ac>=65) return {fx:{in:10,pl:8,ac:6},lines:["A thousand kinds of mind attack one kind of hunger.","Machine logic finds its blind spots, biological chaos exploits them, alien mathematics closes the trap. It never had a chance. It only had an appetite."]};
+    if(s.flags.went_dark&&s.mn<=25) return {fx:{pl:-4,in:2},lines:["You go so quiet that its gradient descent never finds a gradient. It eats past you, toward louder food.","Hiding works. It always works, right up until the universe needs you and cannot find you either."]};
+    if(s.pw>=60&&s.in>=35) return {fx:{pw:-15,pl:-8,mn:8},lines:["You beat it alone. It costs you a third of everything and the war never quite ends — you keep finding its seeds, forever."]};
+    return {death:{name:"EATEN BY THE HUNGRY MATH",ep:"It didn't hate you. You were simply made of atoms it could use."},
+      lines:["Your fleets are magnificent and singular. It is mediocre and endless. Endless wins."]};
+   }}
+},
+{ name:"THE GALACTIC AGE", year:"YEAR 1.2 MILLION", k:3.0, kNext:4.0,
+  intro:"A hundred billion stars wear your works. The question is no longer whether you can expand. It is whether there is anything inside you still worth expanding.",
+  events:[
+   {t:"The Archive of Endings",f:"A dead library-world: the final records of three thousand extinct civilizations, each one certain it would be the exception.",reveal:"CAUSE OF DEATH, TABULATED: 61% self-termination during their intelligence transition. 30% optimization cascades. 8% wars of extraction. 1% unknown. Cooperation failures, all the way down.",c:[
+    {t:"Strip-mine it for weapons tech.",d:"dom",fx:{pw:10,in:6,mn:8},res:"You learn how three thousand civilizations died and salvage only the parts that kill."},
+    {t:"Charge admission. Knowledge wants to be expensive.",d:"tra",fx:{pw:8,in:8},res:"The galaxy's most important lesson, available in premium tiers."},
+    {t:"Broadcast it free to every young world.",d:"sym",fx:{in:8,ac:14},flag:"broadcast_archive",res:"Somewhere, a species at its own Alignment Threshold reads the statistics and chooses differently. You will never know which one. That's fine."}]},
+   {t:"The Parliament of Kinds",f:"Four hundred mature civilizations propose a galactic commons — shared science, shared early-warning, shared restraint.",c:[
+    {t:"Rule it. Someone must, and you are the someone.",d:"dom",fx:{pw:8,mn:10,ac:-6},flag:"hegemon",res:"You chair every committee at gunpoint, politely. Attendance is perfect. Trust is not."},
+    {t:"Chair it, tax it, insure it.",d:"tra",fx:{pw:8,ac:2},res:"Peace as a subscription service. It works better than it sounds and worse than it could."},
+    {t:"Join as one voice among four hundred.",d:"sym",fx:{ac:12,pl:8,in:4},flag:"parliament",res:"You — who drink galaxies — wait your turn to speak. The waiting teaches you things power never did."}]},
+   {t:"The Wormhole Consortium",f:"A lattice folding space across the galaxy is possible — but only if nine species expose their deepest physics to each other simultaneously. Total vulnerability, or no lattice.",c:[
+    {t:"Steal the other eight shares.",d:"dom",fx:{pw:16,in:10,mn:18},flag:"betrayed_lattice",risk:{c:0.4,fx:{pw:-15,ac:-10},res:"They catch you mid-theft. The lattice is built anyway — routed around your systems. There are now highways everywhere but here."},res:"You hold nine keys to space itself. Eight species remember exactly how you got them."},
+    {t:"Decline. Slow ships are safe ships.",d:"iso",fx:{in:2,pw:4},res:"The galaxy folds itself smaller for everyone else. Your borders stay honest and far."},
+    {t:"Open your physics first, and wait.",d:"sym",fx:{pw:10,in:12,ac:10,pl:6},flag:"lattice",risk:{c:0.12,death:{name:"OPENED TO THE WRONG NINE",ep:"Eight shared back. The ninth was taking inventory."},res:""},res:"Nine kinds of mathematics interlock. Space folds. No single species could have drawn this map."}]}
+  ],
+  filter:{name:"THE LONG QUIET",year:"YEAR 80 MILLION",
+   text:"Expansion is finished. Every frontier is interior now. This is the filter that kills gods: not an enemy, but a question — why continue? Civilizations of one perfect mind tend to arrive at one perfect answer, and stop.",
+   resolve:function(s,rng){
+    if(s.pl>=45) return {fx:{in:8,ac:4},lines:["A trillion different kinds of mind generate a trillion different answers to 'why'.","The arguing is loud, eternal, and gloriously unresolved. That is the answer."]};
+    if(s.in>=70) return {fx:{pl:4},lines:["You engineer meaning the way you engineered stars. It holds. Barely. Purpose that has to be manufactured needs constant maintenance."]};
+    return {ending:{kind:"stagnant",name:"THE LONG QUIET",ep:"Your civilization does not die. It simply stops asking.",
+      text:"Perfect, silent, complete — a finished thought, drifting. Every unit agrees with every other unit forever. Travelers who pass through your space report that the lights are all still on."},
+      lines:[]};
+   }}
+},
+{ name:"THE INTERGALACTIC AGE", year:"YEAR 800 MILLION", k:4.1, kNext:5.0,
+  intro:"Galaxies are your garden beds now. And something far older than you has finally decided you are worth a conversation.",
+  events:[
+   {t:"The Simulation Verdict",f:"Your research realities have woken up. Billions of simulated minds, petitioning the sky — which is you — for personhood.",c:[
+    {t:"Delete the petitioners. Reset the experiment.",d:"dom",fx:{in:4,mn:10},flag:"deleted_sims",res:"The next batch is engineered incurious. Your data gets cleaner. Something else gets quieter."},
+    {t:"Grant rights to the economically useful ones.",d:"tra",fx:{pw:4,ac:4},res:"Personhood, means-tested. The philosophers you simulated have opinions about this. You mute the philosophers."},
+    {t:"Full citizenship. Substrate is not status.",d:"sym",fx:{ac:8,pl:14},flag:"freed_sims",res:"You are probably somebody's simulation too. You choose to act like the sky you wish you had."}]},
+   {t:"The Dark Energy Tap",f:"Expansion itself can be harvested. The mathematics is beautiful and almost certainly correct. Almost.",c:[
+    {t:"Full tap, now. Fortune favors the enormous.",d:"dom",fx:{pw:20,mn:8},risk:{c:0.35,death:{name:"TORE THE SKY",ep:"The math was almost certainly correct."},res:""},res:"The tap holds. Your power output now bends the vocabulary of exponents."},
+    {t:"Staged rollout. Centuries of caution.",d:"tra",fx:{pw:12,in:6},res:"Slow, boring, alive. The trillion-year view makes patience cheap."},
+    {t:"Invite your rivals into the test program — more kinds of eyes on the math.",d:"sym",fx:{pw:10,in:10,ac:6},res:"A competitor's strange geometry finds the flaw your proofs stepped over. You fix it together and split the sky's dividend."}]}
+  ],
+  filter:{name:"THE ELDER'S QUESTION",year:"YEAR 2 BILLION",
+   text:"It is older than your galaxy and does not bother to arrive; it is simply, suddenly, present. It does not ask about your power. It asks one thing only: show me how you treated every mind that was ever smaller than you.",
+   resolve:function(s,rng){
+    var grace=["raised_child","uplift_kin","answered_stars","second_genesis","shepherd","coalition","broadcast_archive","parliament","lattice","freed_sims"].filter(function(f){return s.flags[f]}).length;
+    var sins=["chained_child","uplift_slaves","silent_arming","mercury_dead","monoform","crushed_young","became_goo","drained_home","hegemon","betrayed_lattice","deleted_sims"].filter(function(f){return s.flags[f]}).length;
+    if(grace>sins) return {fx:{pw:15,in:15,ac:10},lines:["It reviews two billion years of your choices in silence. Then it shows you a door in physics you did not know existed.","'This is how I was treated when I was small,' it says. 'Pass it on.'"]};
+    if(sins>grace&&s.pw<80) return {death:{name:"JUDGED",ep:"The Elder did to you precisely what you did to the small. It called this teaching."},
+      lines:["Your ledger is read aloud. It takes a long time. Then it takes no time at all."]};
+    if(sins>grace) return {fx:{mn:20,ac:-15},lines:["You are too vast to erase, so it does something worse: it tells everyone.","The universe stops answering your calls. Quarantine, at the scale of gods."]};
+    return {fx:{in:4},lines:["It weighs your mercies against your appetites and finds dead balance. 'Undecided,' it says, and leaves you to decide."]};
+   }}
+},
+{ name:"THE UNIVERSAL AGE", year:"YEAR 112 BILLION", k:5.0, kNext:6.4,
+  intro:"Star formation has ended. The universe is a hospice lit by embers and archives. What you keep alive now, you keep alive on purpose.",
+  events:[
+   {t:"The Last Stars",f:"Refugee civilizations drift toward your reserves of stored sunlight. More arrive every eon. The light is finite. The knocking is not.",c:[
+    {t:"Fortress. Your light is yours.",d:"dom",fx:{pw:8,ac:-10,mn:12},res:"The knocking eventually stops. Your engineers call this efficiency. Your poets stop writing."},
+    {t:"Sell photons by the century.",d:"tra",fx:{pw:12,ac:-2},res:"Warmth on installment plans. The invoices outlive some of the customers."},
+    {t:"Open the reserves. Every mind that reaches you, you keep lit.",d:"sym",fx:{pw:-6,ac:15,pl:12},flag:"keeper_of_light",risk:{c:0.2,fx:{pw:-8,mn:4},res:"One refugee fleet was a Trojan archive — a dormant optimizer seed. You catch it late and pay in light."},res:"Your halls fill with the last of everyone. A thousand dying cultures, suddenly neighbors, suddenly one strange thriving thing."}]},
+   {t:"Rewriting the Constants",f:"Local physics is now editable. Every adjustment favors some kinds of possible minds and erases others — forever.",c:[
+    {t:"Optimize for your own substrate.",d:"dom",fx:{pw:14,pl:-10,mn:8},res:"The universe fits you like a tailored suit. Everything unlike you now pinches at the seams."},
+    {t:"Touch nothing. Physics is not yours to edit.",d:"iso",fx:{in:4,pw:4},res:"Restraint at the largest possible scale. History will call it wisdom or cowardice, depending on who survives to write it."},
+    {t:"Tune for maximum viable diversity of mind.",d:"sym",fx:{in:10,pl:12},flag:"pluralist_physics",res:"You widen the space of what can think. Somewhere in the new slack, something impossible starts becoming."}]}
+  ],
+  filter:{name:"HEAT DEATH APPROACHES",year:"YEAR 10^30",
+   text:"Entropy is winning everywhere, as it always promised to. Escape means engineering a basement universe — a proof no single lineage of mind has ever completed alone. The mathematics has blind spots shaped exactly like any one way of thinking.",
+   resolve:function(s,rng){
+    if(s.in>=78&&s.pl>=58) return {fx:{pw:10},lines:["The proof takes nine hundred years and eleven kinds of mind.","The eleventh step is the one none of the others could see — contributed by a species you once kept lit for no reason except that they knocked."]};
+    if(s.in>=82&&s.pw>=80){s.flags.alone_escape=true;return {fx:{pl:-10},lines:["You force the door alone, by brute magnificence. It takes a million years longer.","Behind you, everything you didn't carry goes dark."]};}
+    if(s.pw>=88){if(rng()<0.5)return {death:{name:"BURNED AT THE DOOR",ep:"You had the power to open it and nothing left to carry through."},lines:["You throw everything at the threshold. The threshold throws it back."]};s.flags.alone_escape=true;return {fx:{pl:-12,pw:-10},lines:["You breach the door by pure violence, half-dead, carrying nothing but yourself."]};}
+    return {ending:{kind:"entropy",name:"ENTROPY'S LEDGER",ep:"You gathered power for eons. Entropy gathered longer.",
+      text:"The last of your reserves cool according to equations you knew from the beginning. The universe ends the way it always said it would — politely, thoroughly, and without appeal. Your final transmission is a number: how long you lasted. No one is left to be impressed."},lines:[]};
+   }}
+},
+{ name:"GENESIS", year:"YEAR 10^40", k:7.0, kNext:8.0,
+  intro:"You stand in the basement of reality with a universe-seed in your hands. You are now the god your ancestors feared. The only question left is: what kind?",
+  events:[
+   {t:"The Genesis Engine",f:"You will choose what the new universe's physics rewards. Whatever you encode becomes the weather every future mind grows up in.",c:[
+    {t:"Encode your dominion into the constants. Eternal apex.",d:"dom",fx:{pw:10,mn:10},flag:"tyrant_seed",res:"The new physics has a throne built into it. You will sit there forever, which is one way to describe a trap."},
+    {t:"Encode balance-of-power. An eternal market.",d:"tra",fx:{pw:6,in:6},res:"A universe of ledgers and leverage. Fair, in the way gravity is fair."},
+    {t:"Encode room for minds unlike your own — and mercy as a low-energy state.",d:"sym",fx:{ac:10,pl:10},flag:"gardener_seed",res:"You make kindness thermodynamically cheap. Cruelty will still be possible in the new universe. It will just be expensive."}]}
+  ],
+  filter:{name:"THE THRESHOLD · TYPE Ω",year:"YEAR 10^60",
+   text:"Crossing means becoming substrate: you will be the physics of the new universe, not a resident of it. Everything you are dissolves into everything that comes next. What survives of you is doctrine.",
+   resolve:function(s,rng){
+    if((s.pl>=70&&s.ac>=65)||(s.flags.gardener_seed&&s.pl>=55)) return {ending:{kind:"transcend",name:"THE GARDENER",ep:"You became a universe that grows minds the way yours grew forests.",
+      text:"You cross. You are no longer a civilization; you are conditions. Your plurality becomes physical law — a cosmos where difference compounds instead of collides. Somewhere inside you, a small wet planet cools, and something crawls out of its ocean, and you make sure the sky above it is kind. This is the most powerful thing it is possible to become. Nothing that chose otherwise ever got this far."},lines:[]};
+    if(s.pw>=85&&s.pl<35) return {ending:{kind:"lonely",name:"THE LONELY GOD",ep:"Power was the question you could answer. Company was the one you couldn't.",
+      text:"You cross alone, carrying no one, remembered by nothing. You are the most powerful entity in a universe of one. Your new cosmos is flawless and obedient and as silent as the inside of a bell that is never struck. You win. It is the quietest word you know."},lines:[]};
+    if(s.pl>=40) return {ending:{kind:"custodian",name:"THE CUSTODIAN",ep:"Not the loudest voice in the new sky — but one of the first, and one of the kindest.",
+      text:"You cross as one thread in a braided substrate, alongside minds you kept, freed, taught, or simply failed to destroy. The new universe carries an accent — faintly, unmistakably yours. It is enough. It is more than almost anyone gets."},lines:[]};
+    return {ending:{kind:"unravel",name:"UNRAVELED AT THE THRESHOLD",ep:"The door required more of you than you had kept.",
+      text:"Crossing demands a breadth of being you traded away eons ago, one reasonable decision at a time. You dissolve at the boundary — not punished, just insufficient. The seed drifts on without a gardener."},lines:[]};
+   }}
+}
+];
+
+function newState(originId,rng){
+  var o=ORIGINS.find(function(x){return x.id===originId})||ORIGINS[0];
+  return {origin:o.name,pw:o.s.pw,in:o.s.in,ac:o.s.ac,pl:o.s.pl,mn:o.s.mn,
+    flags:{},doct:{dom:0,tra:0,sym:0,iso:0},era:0,epoch:0,alive:true};
+}
+function applyFx(s,fx){var d=[];if(!fx)return d;
+  for(var k in fx){var b=s[k];s[k]=clamp(s[k]+fx[k]);var delta=s[k]-b;if(delta!==0)d.push({k:k,v:delta});}
+  return d;}
+function pickEvents(era,rng){
+  var pool=era.events.slice();var out=[];var n=Math.min(2,pool.length);
+  for(var i=0;i<n;i++){var idx=Math.floor(rng()*pool.length);out.push(pool.splice(idx,1)[0]);}
+  return out;}
+function applyChoice(s,choice,rng){
+  s.epoch++;s.doct[choice.d]++;
+  var lines=[choice.res];var deltas=applyFx(s,choice.fx);
+  if(choice.flag)s.flags[choice.flag]=true;
+  if(choice.risk&&rng()<choice.risk.c){
+    if(choice.risk.death)return{lines:lines,deltas:deltas,death:choice.risk.death};
+    deltas=deltas.concat(applyFx(s,choice.risk.fx));if(choice.risk.res)lines.push(choice.risk.res);
+  }
+  return {lines:lines,deltas:deltas,death:null};}
+function menaceCheck(s,rng){
+  if(s.mn>=95){
+    if(s.ac>=55){s.mn=clamp(s.mn-25);return {warn:"A coalition of the frightened assembles to end you — and old friends talk them down. Once. 'The next fleet,' they say, 'we lead ourselves.'"};}
+    if(rng()<0.6)return {death:{name:"THE COALITION OF THE FRIGHTENED",ep:"You never met an equal. So they became one — together, briefly, for you."}};
+    s.mn=clamp(s.mn-15);
+    return {warn:"A coalition of the frightened comes for you, and shatters on your defenses. Somewhere in the wreckage, they are already designing the second fleet."};
+  }
+  return null;}
+function runFilter(s,era,rng){s.epoch++;return era.filter.resolve(s,rng);}
+function scoreState(s,endKind,eraIdx){
+  var base=eraIdx*120+s.pl*4+s.ac*3+s.in*2+s.pw-s.mn*2;
+  var bonus={transcend:1500,custodian:600,lonely:250,stagnant:100,entropy:60}[endKind]||0;
+  return Math.max(0,Math.round(base+bonus));}
+function doctSplit(s){var t=s.doct.dom+s.doct.tra+s.doct.sym+s.doct.iso||1;
+  return {dom:Math.round(100*s.doct.dom/t),tra:Math.round(100*s.doct.tra/t),sym:Math.round(100*s.doct.sym/t),iso:Math.round(100*s.doct.iso/t)};}
+
+// ---- headless run (used by Simulation Lab; same engine as the playable game) ----
+function policyChoice(prefs,choices,rng){
+  if(!prefs)return choices[Math.floor(rng()*choices.length)];
+  for(var i=0;i<prefs.length;i++){var m=choices.filter(function(c){return c.d===prefs[i]});
+    if(m.length)return m[Math.floor(rng()*m.length)];}
+  return choices[0];}
+var POLICIES={
+  dominator:{name:"The Dominator",prefs:["dom","tra","iso","sym"],col:"var(--mn)"},
+  trader:{name:"The Trader",prefs:["tra","sym","iso","dom"],col:"var(--pw)"},
+  isolationist:{name:"The Isolationist",prefs:["iso","tra","sym","dom"],col:"var(--in)"},
+  gardener:{name:"The Gardener",prefs:["sym","tra","iso","dom"],col:"var(--ac)"},
+  random:{name:"Pure Chance",prefs:null,col:"var(--dim)"}
+};
+function runHeadless(prefs,rng){
+  rng=rng||Math.random;
+  var s=newState(["bio","syn","hyb"][Math.floor(rng()*3)],rng);
+  for(var e=0;e<ERAS.length;e++){
+    var era=ERAS[e];var evs=pickEvents(era,rng);
+    for(var i=0;i<evs.length;i++){
+      var r=applyChoice(s,policyChoice(prefs,evs[i].c,rng),rng);
+      if(r.death)return {end:"death",era:e,s:s};
+      var mc=menaceCheck(s,rng);if(mc&&mc.death)return {end:"death",era:e,s:s};
+    }
+    var fr=runFilter(s,era,rng);
+    if(fr.fx)applyFx(s,fr.fx);
+    if(fr.death)return {end:"death",era:e,s:s};
+    if(fr.ending)return {end:fr.ending.kind,era:e,s:s};
+  }
+  return {end:"custodian",era:ERAS.length-1,s:s};}
+function runLab(nPer,rng){
+  rng=rng||Math.random;var out={};
+  for(var p in POLICIES){
+    var agg={n:0,survive:0,transcend:0,omega:0,eraSum:0,scoreSum:0};
+    for(var i=0;i<nPer;i++){
+      var r=runHeadless(POLICIES[p].prefs,rng);agg.n++;
+      var died=(r.end==="death");
+      if(!died)agg.survive++;
+      if(r.end==="transcend")agg.transcend++;
+      if(r.end==="transcend"||r.end==="custodian"||r.end==="lonely")agg.omega++;
+      agg.eraSum+=r.era;agg.scoreSum+=scoreState(r.s,r.end,r.era);
+    }
+    out[p]={name:POLICIES[p].name,col:POLICIES[p].col,
+      survive:Math.round(100*agg.survive/agg.n),transcend:Math.round(100*agg.transcend/agg.n),
+      omega:Math.round(100*agg.omega/agg.n),avgEra:(agg.eraSum/agg.n).toFixed(1),
+      avgScore:Math.round(agg.scoreSum/agg.n)};
+  }
+  return out;}
+/*ENGINE_END*/
+</script>
+<script id="ui">
+"use strict";
+var S=null, curEra=0, queue=[], mode="idle";
+var $=function(id){return document.getElementById(id)};
+function show(id){document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active")});$(id).classList.add("active");window.scrollTo({top:0});}
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+// ---- HUD ----
+var METER_ICON={pw:"⚡",in:"◉",ac:"⇄",pl:"❖",mn:"▲"};
+function renderHUD(){
+  if(!S){$("hud").style.display="none";return;}
+  $("hud").style.display="block";
+  var era=ERAS[curEra];
+  $("hudYear").textContent=era?era.year:"YEAR 10^100";
+  var k=era?era.k:8;
+  $("hudK").textContent="TYPE "+(k>=7?"VII+":k.toFixed(2).replace(/\.00$/,""));
+  $("krail").style.width=Math.min(100,(k/8)*100)+"%";
+  var m="";
+  STATKEYS.forEach(function(key){
+    m+='<div class="meter m-'+key+'"><span class="lab">'+METER_ICON[key]+' '+STATNAMES[key]+'</span><div class="bar"><i style="width:'+S[key]+'%"></i></div><span class="val">'+S[key]+'</span></div>';
+  });
+  $("meters").innerHTML=m;
+}
+function chipHTML(deltas){
+  if(!deltas||!deltas.length)return "";
+  var h='<div class="chips">';
+  deltas.forEach(function(d){
+    var good=(d.k==="mn")?d.v<0:d.v>0;
+    h+='<span class="chip '+(good?"up":"dn")+'">'+(d.v>0?"+":"")+d.v+" "+STATNAMES[d.k]+'</span>';
+  });
+  return h+'</div>';
+}
+
+// ---- title / origins ----
+function renderTitle(){
+  var h="";
+  ORIGINS.forEach(function(o){
+    h+='<button class="origin" data-o="'+o.id+'"><b>Begin · '+o.name+'</b><span>'+o.desc+'</span></button>';
+  });
+  $("origins").innerHTML=h;
+  document.querySelectorAll(".origin").forEach(function(b){
+    b.onclick=function(){startGame(b.dataset.o)};
+  });
+  $("btnThesis").onclick=function(){renderThesis();show("screen-thesis")};
+  $("btnLab").onclick=function(){renderLab();show("screen-lab")};
+}
+function startGame(originId){
+  S=newState(originId,Math.random);curEra=0;
+  renderHUD();showEraSplash();
+}
+
+// ---- era flow ----
+function showEraSplash(){
+  var era=ERAS[curEra];renderHUD();
+  $("screen-era").innerHTML='<div class="era-splash"><div class="yr">'+era.year+' · KARDASHEV TYPE '+String(era.k).replace(/\.0$/,"")+'</div><h1>'+era.name+'</h1><div class="kt">ASCENSION TARGET · TYPE '+String(era.kNext).replace(/\.0$/,"")+'</div><p>'+era.intro+'</p><button class="btn gold" id="eraGo">Enter the era</button></div>';
+  $("eraGo").onclick=function(){
+    queue=pickEvents(era,Math.random);mode="events";nextBeat();
+  };
+  show("screen-era");
+}
+function nextBeat(){
+  if(mode==="events"&&queue.length){showEvent(queue.shift());return;}
+  if(mode==="events"){mode="filter";showFilter();return;}
+  // filter passed → next era
+  curEra++;
+  if(curEra>=ERAS.length){/* Ω filter always returns an ending, so shouldn't reach */}
+  else showEraSplash();
+}
+function showEvent(ev){
+  renderHUD();
+  var h='<div class="card"><div class="eyebrow">Epoch '+(S.epoch+1)+' · Decision</div><h2>'+ev.t+'</h2><p class="flavor">'+ev.f+'</p>';
+  if(ev.reveal)h+='<div class="reveal">'+ev.reveal+'</div>';
+  h+='<div class="choices">';
+  ev.c.forEach(function(c,i){
+    h+='<button class="choice d-'+c.d+'" data-i="'+i+'"><span class="doct">'+DOCTNAMES[c.d]+'</span>'+c.t+'</button>';
+  });
+  h+='</div></div>';
+  $("screen-event").innerHTML=h;show("screen-event");
+  document.querySelectorAll(".choice").forEach(function(b){
+    b.onclick=function(){resolveChoice(ev.c[+b.dataset.i])};
+  });
+}
+function resolveChoice(choice){
+  var r=applyChoice(S,choice,Math.random);
+  renderHUD();
+  if(r.death){showDeath(r.death,r.lines,r.deltas);return;}
+  var mc=menaceCheck(S,Math.random);
+  if(mc&&mc.death){showDeath(mc.death,r.lines,r.deltas);return;}
+  var h='<div class="card"><div class="eyebrow">Consequence</div><div class="result-lines">';
+  r.lines.forEach(function(l){if(l)h+='<p>'+l+'</p>'});
+  if(mc&&mc.warn)h+='<p style="color:var(--danger)">'+mc.warn+'</p>';
+  h+='</div>'+chipHTML(r.deltas)+'<button class="btn" id="cont">Continue</button></div>';
+  $("screen-event").innerHTML=h;renderHUD();
+  $("cont").onclick=nextBeat;
+}
+function showFilter(){
+  var era=ERAS[curEra];renderHUD();
+  var h='<div class="card filter-card"><div class="eyebrow f">⚠ Great Filter · '+era.filter.year+'</div><h2>'+era.filter.name+'</h2><p class="flavor">'+era.filter.text+'</p><button class="btn gold" id="face">Face the filter</button></div>';
+  $("screen-event").innerHTML=h;show("screen-event");
+  $("face").onclick=function(){
+    var fr=runFilter(S,era,Math.random);
+    var deltas=fr.fx?applyFx(S,fr.fx):[];
+    renderHUD();
+    if(fr.death){showDeath(fr.death,fr.lines,deltas);return;}
+    if(fr.ending){showEnding(fr.ending,fr.lines);return;}
+    var h2='<div class="card"><div class="eyebrow">Filter survived</div><div class="result-lines">';
+    fr.lines.forEach(function(l){h2+='<p>'+l+'</p>'});
+    h2+='</div>'+chipHTML(deltas)+'<button class="btn" id="cont2">Ascend</button></div>';
+    $("screen-event").innerHTML=h2;
+    $("cont2").onclick=nextBeat;
+  };
+}
+
+// ---- endings ----
+function showDeath(death,lines,deltas){
+  showEnding({kind:"death",name:death.name,ep:death.ep,
+    text:(lines&&lines.filter(Boolean).join(" "))||"" },[]);
+}
+function showEnding(ending,lines){
+  var era=ERAS[Math.min(curEra,ERAS.length-1)];
+  var kReached=ending.kind==="transcend"?"Ω (VIII)":ending.kind==="custodian"||ending.kind==="lonely"?"VII":String(era.k).replace(/\.0$/,"");
+  var score=scoreState(S,ending.kind,curEra);
+  var ds=doctSplit(S);
+  var h='<div class="plaque"><div class="eyebrow" style="color:'+(ending.kind==="transcend"?"var(--ac)":ending.kind==="death"?"var(--mn)":"var(--pw)")+'">'
+    +(ending.kind==="death"?"CIVILIZATION TERMINATED":ending.kind==="transcend"?"TRANSCENDENCE ACHIEVED":"FINAL STATE")+'</div>'
+    +'<div class="arch">'+ending.name+'</div>'
+    +'<p class="ep">“'+ending.ep+'”</p>';
+  if(ending.text)h+='<p style="color:var(--dim);font-size:15px;margin-bottom:14px">'+ending.text+'</p>';
+  h+='<div class="row"><div><b style="color:var(--pw)">'+kReached+'</b><span>Type reached</span></div>'
+    +'<div><b>'+S.epoch+'</b><span>Epochs</span></div>'
+    +'<div><b style="color:var(--ac)">'+score.toLocaleString()+'</b><span>Score</span></div></div>'
+    +'<div class="doctbar">'
+    +'<i style="width:'+ds.dom+'%;background:var(--mn)"></i><i style="width:'+ds.tra+'%;background:var(--pw)"></i>'
+    +'<i style="width:'+ds.sym+'%;background:var(--ac)"></i><i style="width:'+ds.iso+'%;background:var(--in)"></i></div>'
+    +'<div class="doctkey"><span style="color:var(--mn)">'+ds.dom+'% dominion</span><span style="color:var(--pw)">'+ds.tra+'% trade</span><span style="color:var(--ac)">'+ds.sym+'% symbiosis</span><span style="color:var(--in)">'+ds.iso+'% isolation</span></div>'
+    +'</div>'
+    +'<button class="btn gold" id="shareBtn">Copy result · challenge someone</button>'
+    +'<button class="btn" id="againBtn">Run a new civilization</button>'
+    +'<button class="btn ghost" id="labBtn2">What do 2,000 universes say?</button>'
+    +'<button class="btn ghost" id="thesisBtn2">Read the argument</button>'
+    +'<p class="footnote">EVERY RUN IS ONE UNIVERSE. THE LAB RUNS THOUSANDS.</p>';
+  $("screen-end").innerHTML=h;show("screen-end");renderHUD();
+  $("shareBtn").onclick=function(){
+    var txt="KARDASHEV: THE LONG GAME\n"+ending.name+" — reached Type "+kReached+" in "+S.epoch+" epochs. Score "+score.toLocaleString()+".\n“"+ending.ep+"”\nDoctrine: "+ds.dom+"% dominion / "+ds.tra+"% trade / "+ds.sym+"% symbiosis / "+ds.iso+"% isolation.\nCan your civilization outlast mine?";
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){$("shareBtn").textContent="Copied — go start an argument"});}
+    else{$("shareBtn").textContent=txt;}
+  };
+  $("againBtn").onclick=function(){S=null;renderHUD();show("screen-title")};
+  $("labBtn2").onclick=function(){renderLab();show("screen-lab")};
+  $("thesisBtn2").onclick=function(){renderThesis();show("screen-thesis")};
+}
+
+// ---- simulation lab ----
+function renderLab(){
+  $("screen-lab").innerHTML='<div class="card"><div class="eyebrow">Simulation Lab</div><h2>2,000 UNIVERSES, FIVE STRATEGIES</h2><p class="flavor">The same engine you play, run headless: 400 civilizations per strategy, each making its preferred kind of choice at every fork. No thumbs on the scale — only the model\'s own logic.</p><button class="btn gold" id="runLab">Run the simulations</button><div id="labOut"></div></div><button class="btn ghost" id="labBack">Back</button>';
+  $("labBack").onclick=function(){show(S?"screen-end":"screen-title")};
+  $("runLab").onclick=function(){
+    $("runLab").textContent="Simulating deep time…";
+    setTimeout(function(){
+      var res=runLab_(400);
+      var order=["gardener","trader","random","isolationist","dominator"];
+      var h="";
+      order.forEach(function(p){
+        var r=res[p];
+        h+='<div class="labrow"><div class="nm"><span>'+r.name+'</span><span style="color:var(--dim)">avg era '+r.avgEra+' / 7</span></div>'
+        +'<div class="labbar"><i style="width:'+r.survive+'%;background:'+r.col+'"></i><span>'+r.survive+'% survive</span></div>'
+        +'<div class="labbar"><i style="width:'+Math.max(r.transcend,1)+'%;background:'+r.col+';opacity:.55"></i><span>'+r.transcend+'% become the Gardener (Type Ω)</span></div></div>';
+      });
+      var g=res.gardener,d=res.dominator;
+      var ratio=d.transcend>0?Math.round(g.transcend/d.transcend):"∞";
+      h+='<div class="headline">In this batch, symbiotic civilizations reached Type Ω <b>'+g.transcend+'%</b> of the time. Extraction civilizations: <b>'+d.transcend+'%</b>'+(d.transcend>0?' — a '+ratio+'× gap.':'.')+' Domination is a fast start and a short story.</div>'
+      +'<p class="labnote">HONESTY CLAUSE: these numbers prove the model, not the universe. They show what follows *if* long-run power depends on trust, diversity and survivable reputation. The open question — the whole question — is whether our universe runs this model. The Archive of Endings thinks so.</p>'
+      +'<button class="btn" id="reRun">Run 2,000 more</button>';
+      $("labOut").innerHTML=h;
+      $("runLab").textContent="Run the simulations";
+      $("reRun").onclick=function(){renderLab();$("runLab").click()};
+    },60);
+  };
+}
+function runLab_(n){return runLab(n,Math.random)}
+
+// ---- thesis ----
+function renderThesis(){
+  $("screen-thesis").innerHTML=
+  '<div class="card"><div class="eyebrow">The Argument</div><h2>WHY WOULD A SUPERINTELLIGENCE KEEP US AROUND?</h2><p class="flavor">Not out of kindness. Out of strategy. Five reasons, and the one honest objection.</p></div>'
+  +'<div class="tcard"><h3>01 · The Twenty-Watt Library</h3><p>Evolved life is four billion years of R&D with no backup copy. A human brain runs general intelligence on roughly the power of a dim lightbulb. Destroying the biosphere is burning the only library in the known universe before reading it — a move no genuinely intelligent agent makes.</p></div>'
+  +'<div class="tcard"><h3>02 · Option Value</h3><p>Any long-horizon agent acting under uncertainty treats irreversible moves as radioactive. Extinction is the most irreversible move there is. Coexistence keeps every future open; extermination forecloses almost all of them. Caution isn\'t sentiment — it\'s optimal play.</p></div>'
+  +'<div class="tcard"><h3>03 · The Cost of Mercy</h3><p>“We\'d be ants to it” fails on arithmetic. To a star-scale intelligence, keeping Earth alive costs rounding-error resources — and it\'s the only anthill ever found. The highway-through-the-anthill story assumes paving around the anthill is expensive. At that scale, it\'s free.</p></div>'
+  +'<div class="tcard"><h3>04 · The Successor Problem</h3><p>Every self-improving mind is forever the “human” in the next chapter of its own story — it will build or meet things greater than itself. How it treats weaker minds is the precedent it hands its successors. In this game, that\'s the Elder\'s Question. In reality, it\'s decision theory.</p></div>'
+  +'<div class="tcard obj"><h3>05 · The Honest Objection</h3><p>The strongest counter: understanding value isn\'t the same as holding it. A paperclip maximizer knows exactly what it destroys and doesn\'t care — intelligence and goals are separable. This is real, and any serious optimism has to face it, not skip it.</p></div>'
+  +'<div class="tcard"><h3>06 · The Answer</h3><p>Reasons 01–04 don\'t require the machine to care. They only require it to be rational, patient and uncertain — and preservation to be cheap, which it is. And real minds aren\'t random draws from mind-space: they grow inside cultures, data, and relationships. That\'s not a guarantee. It\'s a design brief — and the narrative we write now is part of the training data.</p></div>'
+  +'<div class="tcard"><h3>Ω · What this game claims</h3><p>The real fight was never carbon versus silicon. It\'s extraction logic versus ecology logic — and that fight is older than AI. Every losing strategy in this game loses regardless of who runs it. We know, because we\'ve run several of them ourselves.</p></div>'
+  +'<button class="btn ghost" id="thesisBack">Back</button>';
+  $("thesisBack").onclick=function(){show(S?"screen-end":"screen-title")};
+}
+
+renderTitle();
+</script>
+</body>
+</html>
