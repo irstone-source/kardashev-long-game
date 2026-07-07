@@ -875,7 +875,10 @@ function playLapse(opts){
     paintDials(opts.next);
     $("lapseYear").textContent=fmtYearN(opts.y1);
     renderTopbar(fmtYearN(opts.y1));
-    setTimeout(opts.done,120);
+    setTimeout(function(){
+      if(lapse.parentNode)lapse.parentNode.removeChild(lapse);
+      opts.done();
+    },120);
   }
   lapse.onclick=finish;
   function frame(ts){
