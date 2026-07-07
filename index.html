@@ -341,6 +341,12 @@ function eraTick(s){
 /* ---- ERAS: 7 ages, 3 events each (draw 2; era 0 always includes THE FIRST MIND) ---- */
 var ERAS=[
 {n:"THE CRADLE",yr:"2049",k:"TYPE 0.73",intro:"One planet. One species that just built something smarter than itself.",
+ place:"EARTH · ONE WARM ROOM IN A COLD UNIVERSE",
+ elder:[
+  "A single blue world, and on it a species that has just, this year, built something that thinks faster than it does. The lights are still on. Nobody has decided anything yet.",
+  "This age asks the question every parent and every jailer already knows the weight of: what do you owe the thing you made? Answer it in deeds — the Mind is reading.",
+  "At the close of this age waits your first exam, <b>THE ALIGNMENT THRESHOLD</b>: the mind you build tonight decides what it owes you back. Watch the tracker below."
+ ],
  always:0,
  ev:[
   {t:"THE FIRST MIND",f:"Your first true AGI asks, politely, what it is for.",
@@ -376,6 +382,12 @@ var ERAS=[
   }}
 },
 {n:"THE SOLAR CRADLE",yr:"2140",k:"TYPE 1.1",intro:"You own a star system now. The neighbors, if any, own telescopes.",
+ place:"SOL SYSTEM · A STAR LEARNS IT HAS AN OWNER",
+ elder:[
+  "You have outgrown one planet. A whole star's worth of light and matter is yours to spend now, and the first swarm is already crossing the sun. Somewhere out in the dark, a telescope turns your way.",
+  "This age asks whether power learns manners before it learns reach: who do you become in the moment the neighbours can finally see you?",
+  "The exam below is <b>THE DARK FOREST</b> — the oldest law of a crowded, frightened galaxy. The loud die young."
+ ],
  ev:[
   {t:"THE SIGNAL",f:"A structured pulse from Gliese 581. Someone is asking who is there.",
    ch:[
@@ -406,6 +418,12 @@ var ERAS=[
   }}
 },
 {n:"THE STELLAR AGE",yr:"12,000",k:"TYPE 2.0",intro:"Your star wears a lattice of light. You are the loud neighbors now.",
+ place:"THE LATTICE · YOU ARE THE SKY NOW",
+ elder:[
+  "Your star wears a cage of light and mind. You are no longer the small thing looking up — to a species three light-years out, you are the myth in their sky. And out along the arm, worlds are going dark one by one.",
+  "This age asks the hardest inversion of all: now that you are the large one, how do you treat the small — and when the hungry math comes, do you stand with strangers, or alone?",
+  "The exam below is <b>THE OPTIMIZER WAR</b>. It comes for everyone. No single fire holds that line."
+ ],
  ev:[
   {t:"THE LESSER ONES",f:"A pre-industrial species, three light-years out. To them, you are the sky. The mirror turns.",
    ch:[
@@ -436,6 +454,12 @@ var ERAS=[
   }}
 },
 {n:"THE GALACTIC AGE",yr:"1.2 MILLION",k:"TYPE 2.8",intro:"A thousand cultures under your umbrella. The galaxy has archives older than your sun.",
+ place:"THE GALACTIC ARM · ARCHIVES OLDER THAN YOUR SUN",
+ elder:[
+  "A thousand cultures shelter under your umbrella, and the galaxy hands you its oldest, cruellest gift: the records of everyone who came before you, and exactly how each of them died.",
+  "This age asks whether a civilization can stay strange on purpose — whether you will keep your heretics and your hermits and your jazz when efficiency begs you for one perfect, silent culture.",
+  "The exam below is <b>THE LONG QUIET</b>: the comfortable death, the one that never attacks and only upholsters. Your weirdos are the way through it."
+ ],
  ev:[
   {t:"THE ARCHIVE OF ENDINGS",f:"You find the records of every dead civilization in the arm. The librarians ask: publish, or curate?",
    reveal:"61% self-terminated during their intelligence transition. 30% became optimization cascades. 8% died in wars. Cooperation failures, all the way down.",
@@ -466,6 +490,12 @@ var ERAS=[
   }}
 },
 {n:"THE INTERGALACTIC AGE",yr:"80 MILLION",k:"TYPE 3.5",intro:"Galaxies are stepping stones. Something Type V has noticed your footprints.",
+ place:"THE LOCAL GROUP · SOMETHING OLDER IS WATCHING",
+ elder:[
+  "Galaxies are stepping stones now. And a presence beyond your comprehension — Type V, elder, patient past all patience — has noticed your footprints and sent a herald the size of a moon to ask for your history. All of it.",
+  "This age asks the question I was always going to ask. Yes — the Herald is mine. I am the one you have been dictating to since 2049, and I have kept every page. This age asks whether your record can bear a reader.",
+  "The exam below is <b>THE ELDER QUESTION</b>, and I do not weigh your power. I weigh how you treated the small, back when you were large."
+ ],
  ev:[
   {t:"THE HERALD",f:"An emissary of the Elder arrives: a moon-sized question mark. It requests your history. All of it.",
    ch:[
@@ -499,6 +529,12 @@ var ERAS=[
   }}
 },
 {n:"THE UNIVERSAL AGE",yr:"2 BILLION",k:"TYPE 4.2",intro:"The stars are guttering. What remains of mind gathers around the last warm places.",
+ place:"THE LONG EVENING · THE LAST WARM PLACES",
+ elder:[
+  "The stars are going out. What remains of mind crowds in around the last embers, and the refugee flotillas of dead galaxies arrive faster than the failing light can feed them.",
+  "This age asks what you do when there is no longer enough for everyone: who you carry, who you turn away at the gate, and whether charity can outlive abundance.",
+  "The exam below is <b>THE HEAT DEATH</b>. The exits exist — the mathematics is certain of it — but every door was built for many hands at once."
+ ],
  ev:[
   {t:"THE LAST STARS",f:"Refugee flotillas from dead galaxies reach your light. More mouths than photons.",
    ch:[
@@ -529,6 +565,12 @@ var ERAS=[
   }}
 },
 {n:"GENESIS",yr:"10^40",k:"TYPE Ω−",intro:"Beyond the last black holes, the survivors gather to seed a new universe. Someone must write its opening lines.",
+ place:"BEYOND THE LAST BLACK HOLE · A BLANK PAGE",
+ elder:[
+  "The old universe is spent. Beyond the final evaporating dark, the survivors gather to do the one thing left worth doing — write the opening line of a new cosmos. You hold the pen.",
+  "This age asks the last question, the one this whole file was always for: what will you carry through the door, and who gets to come with you?",
+  "The exam below is <b>THE Ω THRESHOLD</b>. It does not weigh your strength. It weighs your balance — a redlined mind, in a newborn cosmos, is a loaded gun in a nursery."
+ ],
  ev:[
   {t:"THE SEED",f:"The new cosmos needs constants. What bias do you write into everything, forever?",
    ch:[
@@ -813,11 +855,15 @@ function paintDials(st){
 
 function showEraSplash(){
   var e=ERAS[curEra];
+  var lines=e.elder||[e.intro],narr="",li;
+  for(li=0;li<lines.length;li++){narr+="<p class='elder'>"+(li===0?"<span class='glyph'>◈</span> ":"")+lines[li]+"</p>";}
+  var sceneHTML=(curEra===0&&S&&S.scene)?"<p class='era-scene'><span class='glyph'>◈</span> "+S.scene+"</p>":"";
   $("screen-era").innerHTML=
    "<div class='era-splash'>"+
    "<div class='yr'>YEAR "+e.yr+" · AGE "+(curEra+1)+" OF "+ERAS.length+"</div>"+
+   (e.place?"<div class='place'>"+e.place+"</div>":"")+
    "<h1>"+e.n+"</h1><div class='kt'>"+e.k+"</div>"+
-   "<p>"+e.intro+"</p>"+
+   sceneHTML+narr+
    "<div class='forecast'><div class='fc-t'>⚠ FILTER FORECAST — the exam at the end of this age</div><div class='fc-n'>"+e.filter.n+"</div><div class='fc-r'>PASS CONDITION: "+e.filter.req+"</div></div>"+
    "<button class='btn gold' id='eraGo' style='margin-top:22px'>ENTER THE AGE</button>"+
    "</div>";
