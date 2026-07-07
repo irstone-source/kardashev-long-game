@@ -37,7 +37,7 @@ body{
     radial-gradient(1.5px 1.5px at 8% 58%, #ffffff33 50%, transparent 51%);
   background-attachment:fixed;
 }
-#app{max-width:640px;margin:0 auto;padding:10px 16px calc(28px + env(safe-area-inset-bottom))}
+#app{max-width:640px;margin:0 auto;padding:10px 16px calc(28px + env(safe-area-inset-bottom));position:relative;z-index:1}
 .screen{display:none;animation:fadein .4s ease}
 .screen.active{display:flex;flex-direction:column;flex:1}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -196,6 +196,7 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
 </style>
 </head>
 <body>
+<div id="atmos" aria-hidden="true"></div>
 <div id="app">
 
   <div class="topbar" id="topbar">
@@ -252,6 +253,25 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
 
 </div>
 
+<script>
+/* Atmosphere config — 11 scenes; consumed by assets/atmos.js. Inline so file:// works. */
+window.ATMOS_CONFIG = {
+  scenes: {
+    "title":         { grad: ["#0a0906","#0a0906","#070604","#050403"], accent: "#F2B44C", preset: "drift",      density: 0.85, scrim: "rgba(8,6,3,0.55)",   vignette: 0.85 },
+    "era-0":         { grad: ["#12100a","#0b0906","#070503","#040302"], accent: "#F2B44C", preset: "embers",     density: 0.9,  scrim: "rgba(12,7,3,0.5)",   vignette: 0.8  },
+    "era-1":         { grad: ["#140f08","#0d0805","#080503","#050302"], accent: "#F2A03C", preset: "wind",       density: 0.9,  scrim: "rgba(14,8,3,0.5)",   vignette: 0.78 },
+    "era-2":         { grad: ["#04121a","#030c12","#02080c","#020406"], accent: "#5EC6E8", preset: "starstream", density: 0.8,  scrim: "rgba(3,10,16,0.52)", vignette: 0.82 },
+    "era-3":         { grad: ["#0d0718","#090511","#06040c","#040207"], accent: "#B48CF2", preset: "deepfield",  density: 0.7,  scrim: "rgba(8,5,16,0.55)",  vignette: 0.85 },
+    "era-4":         { grad: ["#0a0716","#07050f","#05040b","#030206"], accent: "#9B8CF2", preset: "deepfield",  density: 0.65, scrim: "rgba(6,5,14,0.58)",  vignette: 0.88 },
+    "era-5":         { grad: ["#160806","#0f0604","#0a0403","#050202"], accent: "#E86A5B", preset: "embers",     density: 0.85, scrim: "rgba(16,5,3,0.55)",  vignette: 0.82 },
+    "era-6":         { grad: ["#1a140a","#120d07","#0b0805","#060403"], accent: "#FFE9C2", preset: "dawn",       density: 0.9,  scrim: "rgba(14,10,5,0.45)", vignette: 0.72 },
+    "end-death":     { grad: ["#100504","#0a0302","#060202","#030101"], accent: "#8A3B34", preset: "embers",     density: 0.35, scrim: "rgba(10,3,2,0.62)",  vignette: 0.92 },
+    "end-transcend": { grad: ["#1c160c","#141009","#0c0906","#050403"], accent: "#FFE9C2", preset: "dawn",       density: 1.0,  scrim: "rgba(16,12,6,0.4)",  vignette: 0.68 },
+    "end-survive":   { grad: ["#100c07","#0b0805","#070503","#040302"], accent: "#C9A15E", preset: "drift",      density: 0.8,  scrim: "rgba(10,7,3,0.52)",  vignette: 0.8  }
+  }
+};
+</script>
+<script src="assets/atmos.js"></script>
 <script>
 /*ENGINE_START*/
 "use strict";
@@ -734,6 +754,7 @@ function runLabBatch(n){
 var S=null,curEra=0,queue=[],qi=0,lastChoice=null,uiRng=function(){return Math.random();};
 var ELDER_OPEN="Every civilization that ever tried is a file on my shelf. Most are thin. Yours I have kept since the night you woke something smarter than yourselves &mdash; bodies are drafts, so I file the whole decision-line under a single name. Let us see how you spent the time.<br><b>The Record-Keeper &middot; Type V &middot; Year 10<sup>40</sup></b>";
 function $(id){return document.getElementById(id);}
+var Atmos=window.Atmos||{init:function(){},set:function(){},mood:function(){},pulse:function(){},preload:function(){},pause:function(){},resume:function(){},destroy:function(){}};
 function show(id){document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active");});$(id).classList.add("active");window.scrollTo(0,0);}
 
 /* ---- year spans per era (for the time lapse) ---- */
@@ -836,6 +857,7 @@ function dialBlockHTML(){
 }
 function paintDials(st){
   var i,k,warns=[];
+  Atmos.mood({heat:st.heat/100});
   for(i=0;i<DIALS.length;i++){
     k=DIALS[i];
     var pin=$("pin-"+k),val=$("val-"+k),d=$("dial-"+k);
@@ -855,6 +877,7 @@ function paintDials(st){
 
 function showEraSplash(){
   var e=ERAS[curEra];
+  Atmos.set("era-"+curEra);
   var lines=e.elder||[e.intro],narr="",li;
   for(li=0;li<lines.length;li++){narr+="<p class='elder'>"+(li===0?"<span class='glyph'>◈</span> ":"")+lines[li]+"</p>";}
   var sceneHTML=(curEra===0&&S&&S.scene)?"<p class='era-scene'><span class='glyph'>◈</span> "+S.scene+"</p>":"";
@@ -920,6 +943,7 @@ function showEvent(){
 /* ---- THE TIME LAPSE: watch the years roll between choice and consequence ---- */
 function playLapse(opts){
   /* opts: {container, prev, next, y0, y1, dur, lines, done} */
+  Atmos.pulse("lapse");
   var host=$(opts.container);
   var block=host.querySelector("#dialblock");
   var choices=host.querySelector("#chc");
@@ -1001,6 +1025,7 @@ function resolveChoice(c){
 
 function showFilterIntro(){
   S.corridor+=eventBonus(S);
+  Atmos.pulse("filter");
   var f=ERAS[curEra].filter;
   var pass=f.ok(S);
   var echo="";
@@ -1119,6 +1144,7 @@ function showEnding(res){
   var kt=ERAS[Math.min(res.era,ERAS.length-1)].k;
   var shareTxt=(S.who||"A civilization")+" · "+arch+" · reached "+kt+" · score "+score+" · KARDASHEV: The Long Game — four dials, both ends kill. Can you hold the corridor?";
   var out=isDeath?"death":(res.end==="transcend"||res.end==="lonely")?"transcend":"survive";
+  Atmos.set("end-"+out);
   recordRun({out:out,arch:arch,ages:res.era+1,origin:S.origin,doct:{dom:S.doct.dom,tra:S.doct.tra,sym:S.doct.sym,iso:S.doct.iso},score:score,date:new Date().toISOString().slice(0,10)});
   var reportTxt="KARDASHEV: The Long Game — RUN REPORT\n"+
     "THE RECORD OF "+(S.who||"AN UNNAMED LINE")+"\n"+
@@ -1141,7 +1167,7 @@ function showEnding(res){
   $("screen-end").innerHTML=html;
   $("shareBtn").onclick=function(){copyText(shareTxt,$("shareBtn"));};
   $("reportBtn").onclick=function(){copyText(reportTxt,$("reportBtn"));};
-  $("againBtn").onclick=function(){S=null;$("topbar").style.display="none";renderPrevRuns();show("screen-title");};
+  $("againBtn").onclick=function(){S=null;$("topbar").style.display="none";Atmos.set("title");renderPrevRuns();show("screen-title");};
   $("labBtn2").onclick=function(){show("screen-lab");};
   $("thesisBtn2").onclick=function(){renderThesis();show("screen-thesis");};
   $("topbar").style.display="none";
@@ -1183,6 +1209,7 @@ $("thesisBack").onclick=function(){show(S?"screen-end":"screen-title");};
 $("thesisBtn").onclick=function(){renderThesis();show("screen-thesis");};
 
 if($("titleElder"))$("titleElder").innerHTML=ELDER_OPEN;
+Atmos.init();Atmos.set("title");
 renderPrevRuns();
 
 })();
