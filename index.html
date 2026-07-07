@@ -1002,6 +1002,21 @@ function renderPrevRuns(){
   host.innerHTML=html;
 }
 
+/* ---- clipboard: writeText with a textarea fallback for older mobile ---- */
+function copyText(txt,btn){
+  function ok(){var old=btn.textContent;btn.textContent="COPIED";setTimeout(function(){btn.textContent=old;},1600);}
+  function fallback(){
+    var ta=document.createElement("textarea");
+    ta.value=txt;ta.setAttribute("readonly","");
+    ta.style.position="fixed";ta.style.top="-999px";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);ok();
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok,fallback);
+  else fallback();
+}
+
 /* ---- forensics: every death explains itself ---- */
 function forensicHTML(res){
   var d=res.end==="death"?res.death:null;
@@ -1036,6 +1051,11 @@ function showEnding(res){
   var shareTxt="I became "+arch+" · reached "+kt+" · score "+score+" · KARDASHEV: The Long Game — four dials, both ends kill. Can you hold the corridor?";
   var out=isDeath?"death":(res.end==="transcend"||res.end==="lonely")?"transcend":"survive";
   recordRun({out:out,arch:arch,ages:res.era+1,origin:S.origin,doct:{dom:S.doct.dom,tra:S.doct.tra,sym:S.doct.sym,iso:S.doct.iso},score:score,date:new Date().toISOString().slice(0,10)});
+  var reportTxt="KARDASHEV: The Long Game — RUN REPORT\n"+
+    "OUTCOME: "+(isDeath?"TERMINATED":out==="transcend"?"TRANSCENDED":"SURVIVED")+" — "+arch+"\n"+
+    "SURVIVED: "+(res.era+1)+" of "+ERAS.length+" ages · reached "+kt+" · score "+score+"\n"+
+    (lastChoice?"DEFINING CHOICE: “"+lastChoice.t+"”\n":"")+
+    "THESIS: Every dial kills at both ends. Survival is a corridor, not a ladder.";
   var html="<div class='plaque'>"+
    "<div class='eyebrow'>"+(isDeath?"CIVILIZATION TERMINATED":res.end==="transcend"?"TRANSCENDENCE":"FINAL RECORD")+"</div>"+
    "<div class='arch'>"+arch+"</div><p class='ep'>"+ep+"</p>"+
@@ -1045,13 +1065,12 @@ function showEnding(res){
    "</div>"+
    forensicHTML(res)+
    "<button class='btn gold' id='shareBtn'>COPY CHALLENGE</button>"+
+   "<button class='btn' id='reportBtn'>COPY RUN REPORT</button>"+
    "<button class='btn' id='againBtn'>RUN IT BACK</button>"+
    "<div class='footnote'><button id='labBtn2'>SIMULATION LAB</button> · <button id='thesisBtn2'>THE ARGUMENT</button></div>";
   $("screen-end").innerHTML=html;
-  $("shareBtn").onclick=function(){
-    if(navigator.clipboard)navigator.clipboard.writeText(shareTxt);
-    $("shareBtn").textContent="COPIED";
-  };
+  $("shareBtn").onclick=function(){copyText(shareTxt,$("shareBtn"));};
+  $("reportBtn").onclick=function(){copyText(reportTxt,$("reportBtn"));};
   $("againBtn").onclick=function(){S=null;$("topbar").style.display="none";renderPrevRuns();show("screen-title");};
   $("labBtn2").onclick=function(){show("screen-lab");};
   $("thesisBtn2").onclick=function(){renderThesis();show("screen-thesis");};
