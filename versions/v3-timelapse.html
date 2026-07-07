@@ -850,7 +850,8 @@ function playLapse(opts){
     "<div class='skiphint'>TAP TO SKIP</div>";
   if(block)block.parentNode.insertBefore(lapse,block.nextSibling);
   else host.querySelector(".card").appendChild(lapse);
-  var t0=null,dur=opts.dur,doneFlag=false,shown=0;
+  var reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var t0=null,dur=reduceMotion?150:opts.dur,doneFlag=false,shown=0;
   var lnY=Math.log(opts.y0),lnY1=Math.log(opts.y1);
   function ease(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
   function finish(){
