@@ -113,6 +113,13 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
 .rules{max-width:460px;margin:14px auto 0;text-align:left;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--dim);border:1px dashed var(--line);border-radius:10px;padding:12px 14px}
 .rules b{color:var(--ink)}
 .rules .rl{display:block;margin-bottom:4px}
+.prevruns{max-width:460px;margin:12px auto 0;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.04em;line-height:1.9;color:var(--dim);border:1px dashed var(--line);border-radius:10px;padding:10px 14px}
+.prevruns .pr-t{font-size:9px;letter-spacing:.14em;color:var(--ink);margin-bottom:4px}
+.prevruns .pr-l{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prevruns b{color:var(--ink);font-weight:600}
+.prevruns .o-death{color:var(--mn)}
+.prevruns .o-transcend{color:var(--pw)}
+.prevruns .o-survive{color:var(--ac)}
 .origins{display:flex;flex-direction:column;gap:10px;margin-top:16px;text-align:left}
 .origin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;width:100%;text-align:left;transition:transform .06s ease}
 .origin:active{transform:scale(.985)}
@@ -189,6 +196,7 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
         <span class="rl" style="margin-top:6px"><b>THE FILTERS</b> — every age ends in an exam. Requirements are public. Watch the tracker. Plan your moves.</span>
       </div>
       <div class="origins" id="origins"></div>
+      <div id="prevRuns"></div>
       <div class="footnote">
         <button id="thesisBtn">THE ARGUMENT</button> · <button id="labBtn">SIMULATION LAB</button>
       </div>
@@ -957,6 +965,35 @@ function faceFilter(){
   }});
 }
 
+/* ---- run persistence: finished runs survive a refresh ---- */
+var RUNS_KEY="kardashev.runs.v1";
+function loadRuns(){
+  try{var r=JSON.parse(localStorage.getItem(RUNS_KEY)||"[]");return Array.isArray(r)?r:[];}catch(e){return [];}
+}
+function recordRun(rec){
+  try{
+    var r=loadRuns();r.push(rec);
+    if(r.length>50)r=r.slice(r.length-50);
+    localStorage.setItem(RUNS_KEY,JSON.stringify(r));
+  }catch(e){}
+}
+function originName(id){for(var i=0;i<ORIGINS.length;i++)if(ORIGINS[i].id===id)return ORIGINS[i].n;return (id||"").toUpperCase();}
+function renderPrevRuns(){
+  var host=$("prevRuns");if(!host)return;
+  var runs=loadRuns();
+  if(!runs.length){host.innerHTML="";return;}
+  var best=runs[0],i;
+  for(i=1;i<runs.length;i++)if(runs[i].score>best.score)best=runs[i];
+  var glyph=function(o){return o==="death"?"✕":o==="transcend"?"◆":"●";};
+  var line=function(r){return "<span class='o-"+r.out+"'>"+glyph(r.out)+"</span> <b>"+r.arch+"</b> · "+r.ages+"/"+ERAS.length+" · "+r.score;};
+  var html="<div class='prevruns'><div class='pr-t'>PREVIOUS RUNS · "+runs.length+" CIVILIZATION"+(runs.length===1?"":"S")+"</div>";
+  html+="<span class='pr-l'>BEST — "+line(best)+" · "+originName(best.origin)+"</span>";
+  var last=runs.slice(-5).reverse();
+  for(i=0;i<last.length;i++)html+="<span class='pr-l'>"+line(last[i])+" · "+last[i].date+"</span>";
+  html+="</div>";
+  host.innerHTML=html;
+}
+
 /* ---- forensics: every death explains itself ---- */
 function forensicHTML(res){
   var d=res.end==="death"?res.death:null;
@@ -989,6 +1026,8 @@ function showEnding(res){
   var seg=function(v,col){return "<i style='width:"+(v*100/total)+"%;background:var(--"+col+")'></i>";};
   var kt=ERAS[Math.min(res.era,ERAS.length-1)].k;
   var shareTxt="I became "+arch+" · reached "+kt+" · score "+score+" · KARDASHEV: The Long Game — four dials, both ends kill. Can you hold the corridor?";
+  var out=isDeath?"death":(res.end==="transcend"||res.end==="lonely")?"transcend":"survive";
+  recordRun({out:out,arch:arch,ages:res.era+1,origin:S.origin,doct:{dom:S.doct.dom,tra:S.doct.tra,sym:S.doct.sym,iso:S.doct.iso},score:score,date:new Date().toISOString().slice(0,10)});
   var html="<div class='plaque'>"+
    "<div class='eyebrow'>"+(isDeath?"CIVILIZATION TERMINATED":res.end==="transcend"?"TRANSCENDENCE":"FINAL RECORD")+"</div>"+
    "<div class='arch'>"+arch+"</div><p class='ep'>"+ep+"</p>"+
@@ -1005,7 +1044,7 @@ function showEnding(res){
     if(navigator.clipboard)navigator.clipboard.writeText(shareTxt);
     $("shareBtn").textContent="COPIED";
   };
-  $("againBtn").onclick=function(){S=null;$("topbar").style.display="none";show("screen-title");};
+  $("againBtn").onclick=function(){S=null;$("topbar").style.display="none";renderPrevRuns();show("screen-title");};
   $("labBtn2").onclick=function(){show("screen-lab");};
   $("thesisBtn2").onclick=function(){renderThesis();show("screen-thesis");};
   $("topbar").style.display="none";
@@ -1045,6 +1084,8 @@ function renderThesis(){
 }
 $("thesisBack").onclick=function(){show(S?"screen-end":"screen-title");};
 $("thesisBtn").onclick=function(){renderThesis();show("screen-thesis");};
+
+renderPrevRuns();
 
 })();
 </script>
