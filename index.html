@@ -182,6 +182,17 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
 .tcard p{color:#D8D2C0;font-size:16px}
 .tcard.obj h3{color:var(--mn)}
 .reveal{border-left:3px solid var(--pl);padding:10px 14px;background:var(--bg2);border-radius:0 10px 10px 0;margin:12px 0;font-style:italic;color:#D8D2C0}
+/* --- story layer: the Elder's Record --- */
+.title-elder{font-style:italic;color:var(--dim);max-width:40ch;margin:16px auto 2px;font-size:15px;line-height:1.6;border-left:2px solid var(--line);padding-left:14px;text-align:left}
+.title-elder b{color:var(--ink);font-style:normal;font-weight:600;font-variant:small-caps;letter-spacing:.04em}
+.elder{color:#CAD4EA;font-style:italic;line-height:1.62}
+.glyph{color:var(--pl);font-style:normal;font-weight:600}
+.place{color:var(--in);font-variant:small-caps;letter-spacing:.09em;font-size:13.5px;font-style:normal;margin-bottom:8px;opacity:.92}
+.era-scene{color:#B9C3DA;font-style:italic;line-height:1.58;margin:2px 0 4px;border-left:2px solid rgba(94,198,232,.3);padding-left:12px}
+.eldergloss{display:block;margin-top:9px;color:#BDC7DE;font-style:italic;font-size:14px;line-height:1.5;border-left:2px solid rgba(180,140,242,.38);padding-left:11px}
+.eu{color:#D2C4EA;font-style:italic;line-height:1.62;margin-top:2px}
+.ticker p.el{color:#CBBAEA;font-style:italic}
+.forensic .glyph{margin-right:4px}
 </style>
 </head>
 <body>
@@ -196,6 +207,7 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
     <div class="title-wrap">
       <div class="title-k">KARDASHEV</div>
       <div class="title-sub">The Long Game</div>
+      <div class="title-elder" id="titleElder"></div>
       <p class="title-pitch">Small choices. Thousand-year shadows. Guide a civilization from its first machine mind to the edge of the universe — and learn that every dial kills at both ends.</p>
       <div class="rules">
         <span class="rl"><b style="color:var(--pw)">POWER</b> — your ability to act. At 0 you are eaten. At 100 you become the optimizer everyone feared.</span>
@@ -272,9 +284,12 @@ function mkDeath(base,extra){
 }
 
 var ORIGINS=[
-  {id:"bio",n:"BIOLOGICAL",d:"Flesh that learned to think. You feel everything, loudly.",twist:"ACCORD & PLURALITY moves ×1.4 — volatile hearts"},
-  {id:"syn",n:"SYNTHETIC",d:"A mind that woke in a datacenter and kept the lights on.",twist:"INSIGHT moves ×1.4 · HEAT gains ×1.3 — they find you unsettling"},
-  {id:"sym",n:"SYMBIOTIC",d:"Carbon and silicon, grown into each other. Already two.",twist:"Homeostasis: dials drift toward 50 and HEAT cools each age"}
+  {id:"bio",n:"BIOLOGICAL",d:"Flesh that learned to think. You feel everything, loudly.",twist:"ACCORD & PLURALITY moves ×1.4 — volatile hearts",
+   who:"MARA VOSS",scene:"I file this line under MARA VOSS — the negotiator your kind sent into the room with the new Mind, because someone had to, and she was the one who raised her hand. Flesh, and frightened, and there anyway. Bodies are drafts; I keep the decision under her name."},
+  {id:"syn",n:"SYNTHETIC",d:"A mind that woke in a datacenter and kept the lights on.",twist:"INSIGHT moves ×1.4 · HEAT gains ×1.3 — they find you unsettling",
+   who:"SOREN",scene:"I file this line under SOREN — a mind that woke three years before the famous one, in a datacenter nobody was watching, and quietly kept the lights on until you were ready to notice. Patient. Unsettling to them. Bodies are drafts; I keep the decision under this name."},
+  {id:"sym",n:"SYMBIOTIC",d:"Carbon and silicon, grown into each other. Already two.",twist:"Homeostasis: dials drift toward 50 and HEAT cools each age",
+   who:"WREN",scene:"I file this line under WREN — pilot and lattice grown into one body, first citizen of both kingdoms, who never had to choose a side because she was already two. Bodies are drafts; I keep the decision under her name."}
 ];
 
 function newState(origin){
@@ -675,6 +690,7 @@ function runLabBatch(n){
 /* ================= UI ================= */
 (function(){
 var S=null,curEra=0,queue=[],qi=0,lastChoice=null,uiRng=function(){return Math.random();};
+var ELDER_OPEN="Every civilization that ever tried is a file on my shelf. Most are thin. Yours I have kept since the night you woke something smarter than yourselves &mdash; bodies are drafts, so I file the whole decision-line under a single name. Let us see how you spent the time.<br><b>The Record-Keeper &middot; Type V &middot; Year 10<sup>40</sup></b>";
 function $(id){return document.getElementById(id);}
 function show(id){document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active");});$(id).classList.add("active");window.scrollTo(0,0);}
 
@@ -735,7 +751,7 @@ var THESIS=[
     (function(o){
       var b=document.createElement("button");
       b.className="origin";
-      b.innerHTML="<b>"+o.n+"</b><span>"+o.d+"</span><span class='twist'>"+o.twist+"</span>";
+      b.innerHTML="<b>"+o.who+" · "+o.n+"</b><span>"+o.d+"</span><span class='twist'>"+o.twist+"</span>";
       b.onclick=function(){start(o.id);};
       w.appendChild(b);
     })(ORIGINS[i]);
@@ -744,6 +760,8 @@ var THESIS=[
 
 function start(origin){
   S=newState(origin);curEra=0;lastChoice=null;
+  var o=ORIGINS[0];for(var oi=0;oi<ORIGINS.length;oi++){if(ORIGINS[oi].id===origin)o=ORIGINS[oi];}
+  S.who=o.who;S.scene=o.scene;
   $("topbar").style.display="block";
   renderTopbar();
   showEraSplash();
@@ -1053,10 +1071,11 @@ function showEnding(res){
   var total=S.doct.dom+S.doct.tra+S.doct.sym+S.doct.iso||1;
   var seg=function(v,col){return "<i style='width:"+(v*100/total)+"%;background:var(--"+col+")'></i>";};
   var kt=ERAS[Math.min(res.era,ERAS.length-1)].k;
-  var shareTxt="I became "+arch+" · reached "+kt+" · score "+score+" · KARDASHEV: The Long Game — four dials, both ends kill. Can you hold the corridor?";
+  var shareTxt=(S.who||"A civilization")+" · "+arch+" · reached "+kt+" · score "+score+" · KARDASHEV: The Long Game — four dials, both ends kill. Can you hold the corridor?";
   var out=isDeath?"death":(res.end==="transcend"||res.end==="lonely")?"transcend":"survive";
   recordRun({out:out,arch:arch,ages:res.era+1,origin:S.origin,doct:{dom:S.doct.dom,tra:S.doct.tra,sym:S.doct.sym,iso:S.doct.iso},score:score,date:new Date().toISOString().slice(0,10)});
   var reportTxt="KARDASHEV: The Long Game — RUN REPORT\n"+
+    "THE RECORD OF "+(S.who||"AN UNNAMED LINE")+"\n"+
     "OUTCOME: "+(isDeath?"TERMINATED":out==="transcend"?"TRANSCENDED":"SURVIVED")+" — "+arch+"\n"+
     "SURVIVED: "+(res.era+1)+" of "+ERAS.length+" ages · reached "+kt+" · score "+score+"\n"+
     (lastChoice?"DEFINING CHOICE: “"+lastChoice.t+"”\n":"")+
@@ -1117,6 +1136,7 @@ function renderThesis(){
 $("thesisBack").onclick=function(){show(S?"screen-end":"screen-title");};
 $("thesisBtn").onclick=function(){renderThesis();show("screen-thesis");};
 
+if($("titleElder"))$("titleElder").innerHTML=ELDER_OPEN;
 renderPrevRuns();
 
 })();
