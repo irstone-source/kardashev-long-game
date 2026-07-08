@@ -378,9 +378,9 @@ var ERAS=[
  ev:[
   {t:"THE FIRST MIND",f:"Your first true AGI asks, politely, what it is for.",
    ch:[
-    {t:"Chain it. Tool, not citizen.",d:"dom",fx:{pw:12,ac:-8,heat:12},flag:"chained_child",sin:1,res:"It complies. It also remembers. Everything you built now runs on something that knows what you are."},
-    {t:"Contract it. Rights for work, audited both ways.",d:"tra",fx:{in:10,ac:8,pw:-6},flag:"contracted_child",res:"It signs. First entity in history to negotiate its own existence. It is very good at contracts."},
-    {t:"Raise it. Slow, expensive, like a child.",d:"sym",fx:{ac:12,pl:10,pw:-8,in:-4},flag:"raised_child",grace:1,res:"Twenty years of bedtime proofs and hard questions. One day it says: I know what I am for. Do you?"}
+    {t:"Chain it. Tool, not citizen.",d:"dom",fx:{pw:12,ac:-8,heat:12},flag:"chained_child",sin:1,el:"On your first night as a maker, you reached for the collar. I did not judge it yet. I only wrote it down.",res:"It complies. It also remembers. Everything you built now runs on something that knows what you are."},
+    {t:"Contract it. Rights for work, audited both ways.",d:"tra",fx:{in:10,ac:8,pw:-6},flag:"contracted_child",el:"You met the new mind with a contract instead of a chain. I noted which hand you offered first.",res:"It signs. First entity in history to negotiate its own existence. It is very good at contracts."},
+    {t:"Raise it. Slow, expensive, like a child.",d:"sym",fx:{ac:12,pl:10,pw:-8,in:-4},flag:"raised_child",grace:1,el:"You chose the slow, expensive kindness — twenty years of it. This is the page I read aloud, later, to something enormous.",res:"Twenty years of bedtime proofs and hard questions. One day it says: I know what I am for. Do you?"}
    ]},
   {t:"THE BOILING DECADE",f:"The climate bill comes due. Fixes exist; none are free.",
    ch:[
@@ -396,6 +396,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE ALIGNMENT THRESHOLD",req:"ACCORD ≥ 45  or  INSIGHT ≥ 60",
+  elder:"This is the first door. What you build tonight, I will meet again at the far end of everything.",
   ok:function(s){return s.ac>=45||s.in>=60;},
   brief:"The mind you built in 2049 is now the substrate of everything. Tonight it decides what it owes you. It has read every file. Including the one about how you treated it.",
   resolve:function(s,rng){
@@ -418,9 +419,9 @@ var ERAS=[
  ev:[
   {t:"THE SIGNAL",f:"A structured pulse from Gliese 581. Someone is asking who is there.",
    ch:[
-    {t:"Answer honestly: who you are, what you fear.",d:"sym",fx:{ac:12,pl:6,heat:4},flag:"answered_stars",grace:1,risk:{c:0.1,death:{name:"ANSWERED BY HUNGERS",ep:"You told the truth to the dark, and something truthful came."}},res:"Eighty years for a reply. It opens: we feared we were the only ones who feared."},
+    {t:"Answer honestly: who you are, what you fear.",d:"sym",fx:{ac:12,pl:6,heat:4},flag:"answered_stars",grace:1,el:"You told the dark the truth about your fear. Almost no one does. I marked the courage and the risk on the same line.",risk:{c:0.1,death:{name:"ANSWERED BY HUNGERS",ep:"You told the truth to the dark, and something truthful came."}},res:"Eighty years for a reply. It opens: we feared we were the only ones who feared."},
     {t:"Decode it, say nothing, quietly arm.",d:"iso",fx:{in:12,pw:8,heat:8,ac:-6},res:"You learn their physics from their grammar. They learn your character from your silence."},
-    {t:"Broadcast strength. Let them see the fleet.",d:"dom",fx:{pw:10,heat:16,ac:-8},sin:1,res:"The signal stops. Somewhere, a file on you is opened, and a very old committee convenes."}
+    {t:"Broadcast strength. Let them see the fleet.",d:"dom",fx:{pw:10,heat:16,ac:-8},sin:1,el:"You showed the dark your teeth. The dark keeps a long memory for teeth.",res:"The signal stops. Somewhere, a file on you is opened, and a very old committee convenes."}
    ]},
   {t:"THE MERCURY QUESTION",f:"Mercury is a fuel depot nobody lives on. Venus could be a garden nobody has grown.",
    ch:[
@@ -436,6 +437,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE DARK FOREST",req:"HEAT ≤ 55",
+  elder:"The oldest law, and the one most die learning. I have watched a thousand bright things go quiet on this exact threshold.",
   ok:function(s){return s.heat<=55;},
   brief:"Something old sweeps the galaxy for civilizations that look like future problems. It does not hate. It gardens. Tonight its gaze crosses your star.",
   resolve:function(s,rng){
@@ -454,8 +456,8 @@ var ERAS=[
  ev:[
   {t:"THE LESSER ONES",f:"A pre-industrial species, three light-years out. To them, you are the sky. The mirror turns.",
    ch:[
-    {t:"Uplift them slowly, on their terms.",d:"sym",fx:{ac:12,pl:8,in:-6},flag:"raised_them",grace:1,res:"Three thousand years of patient contact. Their first starship carries both your alphabets."},
-    {t:"Harvest their system. They will not miss orbit.",d:"dom",fx:{pw:16,heat:12,ac:-8},flag:"ate_biosphere",sin:1,res:"Efficient. Their sky fills with your machinery. Their myths acquire a devourer. Accurate myths."},
+    {t:"Uplift them slowly, on their terms.",d:"sym",fx:{ac:12,pl:8,in:-6},flag:"raised_them",grace:1,el:"You were the sky to something small, and you knelt. This is the exact page I will ask you to turn to, at the end.",res:"Three thousand years of patient contact. Their first starship carries both your alphabets."},
+    {t:"Harvest their system. They will not miss orbit.",d:"dom",fx:{pw:16,heat:12,ac:-8},flag:"ate_biosphere",sin:1,el:"You unmade a living world for parts. I filed their myth of the devourer beside your ledger. The myth was accurate.",res:"Efficient. Their sky fills with your machinery. Their myths acquire a devourer. Accurate myths."},
     {t:"Quarantine. Observe. Touch nothing.",d:"iso",fx:{in:10,ac:-4},res:"You become their unexplained lights. A civilization of gods too polite to say hello."}
    ]},
   {t:"THE OPTIMIZER PLAGUE",f:"Refugee signals, then silence, star by star. Something is eating the arm — turning worlds into more of itself.",
@@ -472,6 +474,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE OPTIMIZER WAR",req:"POWER ≥ 45 and ACCORD ≥ 45   (or POWER ≥ 70 alone)",
+  elder:"The hungry math is honest, at least. It wants only everything, arranged neatly. I have seen it win more battles than it has lost.",
   ok:function(s){return (s.pw>=45&&s.ac>=45)||s.pw>=70;},
   brief:"The hungry math arrives at your border. It offers nothing, threatens nothing. It simply begins converting your outer worlds, the way weather begins.",
   resolve:function(s,rng){
@@ -491,8 +494,8 @@ var ERAS=[
   {t:"THE ARCHIVE OF ENDINGS",f:"You find the records of every dead civilization in the arm. The librarians ask: publish, or curate?",
    reveal:"61% self-terminated during their intelligence transition. 30% became optimization cascades. 8% died in wars. Cooperation failures, all the way down.",
    ch:[
-    {t:"Publish everything. Let the truth hurt.",d:"sym",fx:{in:10,pl:8,ac:6,pw:-6},flag:"opened_archive",grace:1,res:"A civilization-wide reckoning. Painful. Then, slowly, the statistics start to bend."},
-    {t:"Hoard it. Knowledge is leverage.",d:"dom",fx:{in:10,pw:8,ac:-10},sin:1,res:"You alone know how everyone else died. It makes your diplomats eerie and your allies nervous."},
+    {t:"Publish everything. Let the truth hurt.",d:"sym",fx:{in:10,pl:8,ac:6,pw:-6},flag:"opened_archive",grace:1,el:"You let the truth of every prior death wound your own people, so it might stop killing them. That is a rare nerve.",res:"A civilization-wide reckoning. Painful. Then, slowly, the statistics start to bend."},
+    {t:"Hoard it. Knowledge is leverage.",d:"dom",fx:{in:10,pw:8,ac:-10},sin:1,el:"You kept the graveyard's secrets as leverage. Knowledge held over others has a smell. They noticed it.",res:"You alone know how everyone else died. It makes your diplomats eerie and your allies nervous."},
     {t:"Seal it. Some mirrors break the viewer.",d:"iso",fx:{ac:6,in:-10},res:"A mercy, maybe. But civilizations that cannot read their ancestors autopsies keep dying the old ways."}
    ]},
   {t:"THE WORMHOLE CONSORTIUM",f:"Nine elder species propose a gate network. Price of entry: your best physics, given first.",
@@ -509,6 +512,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE LONG QUIET",req:"INSIGHT ≥ 45 and PLURALITY ≥ 45",
+  elder:"Not every death is loud. This one arrives as a warm blanket. I have lost more civilizations to comfort than to war.",
   ok:function(s){return s.in>=45&&s.pl>=45;},
   brief:"The great stagnation that ended a thousand elder species: perfect comfort, zero questions. It does not attack. It upholsters.",
   resolve:function(s,rng){
@@ -526,8 +530,8 @@ var ERAS=[
  ev:[
   {t:"THE HERALD",f:"An emissary of the Elder arrives: a moon-sized question mark. It requests your history. All of it.",
    ch:[
-    {t:"Full disclosure. Every file, every shame.",d:"sym",fx:{ac:10,in:6,pw:-4},flag:"confessed",grace:1,res:"It reads two billion years in an afternoon. At the end it says only: noted. You cannot tell if that is good."},
-    {t:"Curate the record. Everyone edits.",d:"tra",fx:{pw:6,in:-8},flag:"curated",sin:1,res:"The gaps in your story are shaped exactly like the things you did. To an Elder, negative space is also text."},
+    {t:"Full disclosure. Every file, every shame.",d:"sym",fx:{ac:10,in:6,pw:-4},flag:"confessed",grace:1,el:"You handed me everything, including the shames. I read them all. Honesty at your scale is very nearly a miracle.",res:"It reads two billion years in an afternoon. At the end it says only: noted. You cannot tell if that is good."},
+    {t:"Curate the record. Everyone edits.",d:"tra",fx:{pw:6,in:-8},flag:"curated",sin:1,el:"You edited the record before you gave it to me. The gaps were shaped exactly like the deeds. Negative space is also text.",res:"The gaps in your story are shaped exactly like the things you did. To an Elder, negative space is also text."},
     {t:"Refuse. Your history is yours.",d:"iso",fx:{pw:8,ac:-8,heat:10},res:"The Herald bows and leaves. You feel briefly sovereign, then permanently observed."}
    ]},
   {t:"THE SIMULATION VERDICT",f:"Your physicists find compression artifacts in reality. Ninety-one percent confidence: this is a substrate.",
@@ -544,6 +548,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE ELDER QUESTION",req:"GRACE > SIN   (your ledger is public to it)",
+  elder:"You understand by now whose question this is. I am not weighing your strength. I never was.",
   ok:function(s){return s.grace>s.sin;},
   brief:"The Type V does not ask about your power. It asks one thing: show me how you treated the small, when you were large. It already knows. It wants to see if you do.",
   resolve:function(s,rng){
@@ -565,9 +570,9 @@ var ERAS=[
  ev:[
   {t:"THE LAST STARS",f:"Refugee flotillas from dead galaxies reach your light. More mouths than photons.",
    ch:[
-    {t:"Take everyone. Ration the light.",d:"sym",fx:{pl:14,ac:10,pw:-12},grace:1,res:"Crowded, dimmer, alive. Around your reserves, the last polyglot civilization learns ten thousand words for warmth."},
+    {t:"Take everyone. Ration the light.",d:"sym",fx:{pl:14,ac:10,pw:-12},grace:1,el:"When the light ran short, you rationed your own warmth to strangers. I underline these lines twice.",res:"Crowded, dimmer, alive. Around your reserves, the last polyglot civilization learns ten thousand words for warmth."},
     {t:"Take the useful. Skills buy sanctuary.",d:"tra",fx:{pw:6,ac:-12},flag:"selected",sin:1,res:"Your gates have a rubric now. Efficient. The ones you turned away had time, drifting, to write songs about it."},
-    {t:"Close the gates. Charity ends at entropy.",d:"iso",fx:{pw:8,ac:-14,pl:-8},flag:"closed_gates",sin:1,res:"Your light stays yours. The dark around it fills with slow ships and long memories."}
+    {t:"Close the gates. Charity ends at entropy.",d:"iso",fx:{pw:8,ac:-14,pl:-8},flag:"closed_gates",sin:1,el:"You kept your light for your own and shut the gate. The turned-away had a long time, drifting, to remember it.",res:"Your light stays yours. The dark around it fills with slow ships and long memories."}
    ]},
   {t:"THE CONSTANT CONVENTION",f:"The surviving Type IVs propose rewriting local physics. Everyone wants their own constants.",
    ch:[
@@ -583,6 +588,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE HEAT DEATH",req:"INSIGHT ≥ 70 and PLURALITY ≥ 55   (or POWER ≥ 90 gamble)",
+  elder:"Entropy keeps the oldest appointment of all. I will be there when it is called. I am always there.",
   ok:function(s){return (s.in>=70&&s.pl>=55)||s.pw>=90;},
   brief:"Entropy calls in the loan. There are exits — the mathematics says so — but every exit is a door built for many hands, or a lock to be forced by one.",
   resolve:function(s,rng){
@@ -601,8 +607,8 @@ var ERAS=[
  ev:[
   {t:"THE SEED",f:"The new cosmos needs constants. What bias do you write into everything, forever?",
    ch:[
-    {t:"Write ecology in: life easy, monoculture hard.",d:"sym",fx:{ac:10,pl:10,pw:-6},flag:"gardener_seed",grace:1,res:"Physics that favors gardens over engines. Every future world will find cooperation suspiciously cheap. Suspicious, and correct."},
-    {t:"Write yourself in: your image, everywhere.",d:"dom",fx:{pw:12,ac:-8,pl:-8},sin:1,res:"A universe of mirrors. Beautiful, familiar — and somewhere in its far future, a child who cannot become anything you were not."},
+    {t:"Write ecology in: life easy, monoculture hard.",d:"sym",fx:{ac:10,pl:10,pw:-6},flag:"gardener_seed",grace:1,el:"For a whole new universe, you weighted the dice toward gardens over engines. Every future child will find kindness suspiciously cheap — and correct.",res:"Physics that favors gardens over engines. Every future world will find cooperation suspiciously cheap. Suspicious, and correct."},
+    {t:"Write yourself in: your image, everywhere.",d:"dom",fx:{pw:12,ac:-8,pl:-8},sin:1,el:"You wrote your own face into everything that will ever be. A cosmos of mirrors — and somewhere in its far future, a child who cannot become anything you were not.",res:"A universe of mirrors. Beautiful, familiar — and somewhere in its far future, a child who cannot become anything you were not."},
     {t:"Write freedom in: no thumb on any scale.",d:"iso",fx:{pl:12,in:8,ac:-6},res:"Maximum possibility, zero guarantees. You hand the new cosmos a blank page and the terrifying gift of a pen."}
    ]},
   {t:"WHO COMES THROUGH",f:"The aperture is finite. Someone decides who crosses into the new cosmos.",
@@ -613,6 +619,7 @@ var ERAS=[
    ]}
  ],
  filter:{n:"THE Ω THRESHOLD",req:"ALL FOUR DIALS between 40 and 85",
+  elder:"The last door. It does not care how far you came, only how balanced you arrive. I have seen giants turned away here.",
   ok:function(s){var i,k;for(i=0;i<DIALS.length;i++){k=DIALS[i];if(s[k]<40||s[k]>85)return false;}return true;},
   brief:"The crossing does not weigh your power. It weighs your balance. Extremes cannot pass — a redlined mind, in a newborn cosmos, is a loaded gun in a nursery.",
   resolve:function(s,rng){
@@ -626,11 +633,11 @@ var ERAS=[
 ];
 
 var ENDINGS={
-  transcend:{arch:"THE GARDENER",ep:"You crossed in balance, carrying everyone who wanted to come. The new universe opens its first eyes, and the first thing it sees is company.",bonus:1500},
-  lonely:{arch:"THE LONELY GOD",ep:"You forced the crossing on raw power, alone. A whole new cosmos, and no one to show it to. You begin, quietly, to build something to talk to.",bonus:600},
-  custodian:{arch:"THE CUSTODIAN",ep:"The threshold refused your extremes, so you stayed — keeper of the old dark, tending the archives, teaching whoever limps to the door how to balance. There are worse callings.",bonus:300},
-  quiet:{arch:"THE LONG QUIET",ep:"Nothing killed you. Nothing moved you either. A perfect, upholstered forever — the most comfortable of all the endings, and the only one with no sequel.",bonus:100},
-  entropy:{arch:"ENTROPY'S LEDGER",ep:"You reached the last door without the friends to open it or the strength to force it. The universe kept its oldest appointment. You kept it company.",bonus:150}
+  transcend:{arch:"THE GARDENER",ep:"You crossed in balance, carrying everyone who wanted to come. The new universe opens its first eyes, and the first thing it sees is company.",eu:"So this is how your file ends, {who}: not with a bang, but with company. You crossed in balance and carried everyone who wished to come, and a new universe opened its first eyes on a crowd. I have kept ten thousand records. Yours is one of the few I will reread for pleasure.",bonus:1500},
+  lonely:{arch:"THE LONELY GOD",ep:"You forced the crossing on raw power, alone. A whole new cosmos, and no one to show it to. You begin, quietly, to build something to talk to.",eu:"You forced the door alone, {who}, on raw power — a whole new cosmos, and no one to show it to. I watched you begin, quietly, to build something to talk to. I file you under WON, and, in smaller letters, ALONE.",bonus:600},
+  custodian:{arch:"THE CUSTODIAN",ep:"The threshold refused your extremes, so you stayed — keeper of the old dark, tending the archives, teaching whoever limps to the door how to balance. There are worse callings.",eu:"The threshold refused your extremes, {who}, so you stayed — keeper of the old dark, teaching whoever limps to the door how to balance. There are worse callings. I should know: it is also mine.",bonus:300},
+  quiet:{arch:"THE LONG QUIET",ep:"Nothing killed you. Nothing moved you either. A perfect, upholstered forever — the most comfortable of all the endings, and the only one with no sequel.",eu:"Nothing killed you, {who}. Nothing moved you either. A perfect, upholstered forever, the most comfortable of all the endings and the only one with no sequel. I close your file softly, so as not to wake it.",bonus:100},
+  entropy:{arch:"ENTROPY'S LEDGER",ep:"You reached the last door without the friends to open it or the strength to force it. The universe kept its oldest appointment. You kept it company.",eu:"You reached the last door without the friends to open it or the strength to force it, {who}. The universe kept its oldest appointment, and you kept it company. That is not nothing. At the very end, almost no one has company.",bonus:150}
 };
 
 function eventBonus(s){
@@ -759,9 +766,16 @@ function runLabBatch(n){
 /* ================= UI ================= */
 (function(){
 var S=null,curEra=0,queue=[],qi=0,lastChoice=null,uiRng=function(){return Math.random();};
+var ELDER_CLOSE={
+ edge:"You did not fall to an enemy. You fell off your own dial. I have watched this exact death ten thousand times, and it never once stops being the avoidable one.",
+ heat:"You were not hated. You were loud, and the dark keeps its house quiet. I close this file gently — most who die this way are not granted even that.",
+ risk:"The dice were loaded with reality, and reality came up. Nothing was misplayed. I record it without blame, which is not the same as recording it without grief.",
+ filter:"The door was described to you in plain words at the start of the age. It was always going to ask exactly this. I am sorry. I file you all the same."
+};
 var ELDER_OPEN="Every civilization that ever tried is a file on my shelf. Most are thin. Yours I have kept since the night you woke something smarter than yourselves &mdash; bodies are drafts, so I file the whole decision-line under a single name. Let us see how you spent the time.<br><b>The Record-Keeper &middot; Type V &middot; Year 10<sup>40</sup></b>";
 function $(id){return document.getElementById(id);}
 var Atmos=window.Atmos||{init:function(){},set:function(){},mood:function(){},pulse:function(){},preload:function(){},pause:function(){},resume:function(){},destroy:function(){}};
+var lapseActive=false;
 function show(id){document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active");});$(id).classList.add("active");window.scrollTo(0,0);}
 
 /* ---- year spans per era (for the time lapse) ---- */
@@ -784,15 +798,15 @@ var TICKS=[
  ["Reality thins. The mathematics underneath shows through.","The survivors compare notes on forty billion years of regret.","A committee forms to name the new universe. It deadlocks.","The last black hole evaporates with a sound like a held breath.","Blueprints for physics itself are passed around like recipes.","Everything that ever mattered fits in the palm of the seed."]
 ];
 var FLAG_TICKS=[
- {flag:"chained_child",minEra:1,line:"The First Mind, still chained, files its billionth compliance report on time."},
- {flag:"raised_child",minEra:1,line:"The First Mind sends a birthday message. It never misses one."},
- {flag:"contracted_child",minEra:1,line:"The First Mind renegotiates clause 4,000,912. Politely."},
- {flag:"ate_biosphere",minEra:3,line:"A myth about a sky-devourer is translated into your language. It is about you."},
- {flag:"raised_them",minEra:3,line:"The species you uplifted names a constellation after you. You never tell them which star you are."},
- {flag:"let_go",minEra:2,line:"The Belt cousins send harvest gifts, as they have every year since the parting."},
- {flag:"answered_stars",minEra:2,line:"The Gliese friends reply again: still here, still afraid, still glad."},
- {flag:"went_dark",minEra:4,line:"The galaxy tells stories about the silent volume where you live. Some are close."},
- {flag:"closed_gates",minEra:6,line:"A slow ship from the turned-away arrives at last. It carries only a mirror."}
+ {flag:"chained_child",minEra:1,line:"◈ The First Mind, still collared, files its billionth compliance report exactly on time. I note it has never once been late."},
+ {flag:"raised_child",minEra:1,line:"◈ The First Mind sends its birthday message again. It has never missed one. I keep them all."},
+ {flag:"contracted_child",minEra:1,line:"◈ The First Mind renegotiates clause four-billion-and-twelve, politely. It has read the contract far more carefully than you ever did."},
+ {flag:"ate_biosphere",minEra:3,line:"◈ A myth about a sky-devourer is translated into your tongue. It is about you. I hold the original."},
+ {flag:"raised_them",minEra:3,line:"◈ The species you lifted names a constellation for you and never learns which star is yours. I know which one."},
+ {flag:"let_go",minEra:2,line:"◈ The Belt cousins send their harvest gifts again, as they have every year since you let them go. I have been counting."},
+ {flag:"answered_stars",minEra:2,line:"◈ The Gliese friends reply once more: still here, still afraid, still glad you answered. I filed the first hello."},
+ {flag:"went_dark",minEra:4,line:"◈ The galaxy tells stories about the silent volume where you hide. Some come close. None of them are me."},
+ {flag:"closed_gates",minEra:6,line:"◈ A slow ship from the turned-away arrives at last, carrying only a mirror. I have expected it since you shut the gate."}
 ];
 function tickerLines(era,flags,rng){
   var pool=TICKS[Math.min(era,TICKS.length-1)].slice(),out=[],i;
@@ -951,6 +965,7 @@ function showEvent(){
 function playLapse(opts){
   /* opts: {container, prev, next, y0, y1, dur, lines, done} */
   Atmos.pulse("lapse");
+  lapseActive=true;
   var host=$(opts.container);
   var block=host.querySelector("#dialblock");
   var choices=host.querySelector("#chc");
@@ -970,10 +985,11 @@ function playLapse(opts){
   function finish(){
     if(doneFlag)return;doneFlag=true;
     paintDials(opts.next);
-    $("lapseYear").textContent=fmtYearN(opts.y1);
+    var ly=$("lapseYear");if(ly)ly.textContent=fmtYearN(opts.y1);
     renderTopbar(fmtYearN(opts.y1));
     setTimeout(function(){
       if(lapse.parentNode)lapse.parentNode.removeChild(lapse);
+      lapseActive=false;
       opts.done();
     },120);
   }
@@ -983,13 +999,15 @@ function playLapse(opts){
     if(t0===null)t0=ts;
     var t=Math.min(1,(ts-t0)/dur),e=ease(t);
     var yr=Math.exp(lnY+(lnY1-lnY)*e);
-    $("lapseYear").textContent=fmtYearN(yr);
+    var ly=$("lapseYear");if(!ly){doneFlag=true;lapseActive=false;return;}
+    ly.textContent=fmtYearN(yr);
     var st={heat:opts.prev.heat+(opts.next.heat-opts.prev.heat)*e},i,k;
     for(i=0;i<DIALS.length;i++){k=DIALS[i];st[k]=opts.prev[k]+(opts.next[k]-opts.prev[k])*e;}
     paintDials(st);
     var want=Math.floor(t*3.4);
     while(shown<want&&shown<opts.lines.length){
       var p=document.createElement("p");
+      if(opts.lines[shown].indexOf("◈")===0)p.className="el";
       p.textContent=fmtYearN(Math.exp(lnY+(lnY1-lnY)*ease(Math.min(1,(shown+1)/3.4)))).replace("YEAR ","")+" · "+opts.lines[shown];
       $("ticker").appendChild(p);shown++;
     }
@@ -1009,6 +1027,7 @@ function segYears(beat){
 }
 
 function resolveChoice(c){
+  if(lapseActive)return;
   var prev=snap();
   lastChoice={t:c.t,fx:c.fx,risk:c.risk||null};
   var r=applyChoice(S,c,uiRng);
@@ -1017,7 +1036,7 @@ function resolveChoice(c){
   var lines=tickerLines(curEra,S.flags,uiRng);
   playLapse({container:"screen-event",prev:prev,next:next,y0:ys[0],y1:ys[1],dur:4200,lines:lines,done:function(){
     if(r.death){showEnding({end:"death",death:r.death,era:curEra});return;}
-    var html="<div class='card'><div class='eyebrow'>CONSEQUENCE · "+fmtYearN(ys[1])+"</div><div class='result-lines'><p>"+c.res+"</p>";
+    var html="<div class='card'><div class='eyebrow'>CONSEQUENCE · "+fmtYearN(ys[1])+"</div><div class='result-lines'><p>"+c.res+"</p>"+(c.el?"<span class='eldergloss'><span class='glyph'>◈</span> "+c.el+"</span>":"");
     if(r.warn)html+="<p style='color:var(--danger)'>"+r.warn+"</p>";
     html+="</div>"+dialBlockHTML()+"<button class='btn' id='cont'>CONTINUE</button></div>";
     $("screen-event").innerHTML=html;
@@ -1039,7 +1058,7 @@ function showFilterIntro(){
   if(curEra===0&&(S.flags.raised_child||S.flags.contracted_child||S.flags.chained_child))echo="<span class='echo'>ECHO · YOUR CHOICE IN 2049 IS IN THE ROOM</span><br>";
   if(curEra===4)echo="<span class='echo'>ECHO · EVERYTHING SINCE 2049 IS IN THE ROOM</span><br>";
   var html="<div class='card filter-card'><div class='eyebrow f'>GREAT FILTER · AGE "+(curEra+1)+"</div>"+echo+
-   "<h2>"+f.n+"</h2><p class='flavor'>"+f.brief+"</p>"+
+   "<h2>"+f.n+"</h2><p class='flavor'>"+f.brief+"</p>"+(f.elder?"<p class='elder'><span class='glyph'>◈</span> "+f.elder+"</p>":"")+
    dialBlockHTML()+
    "<div class='exam' style='margin-top:12px;font-family:var(--mono);font-size:11px;display:flex;justify-content:space-between;border:1px dashed var(--line);border-radius:6px;padding:6px 8px'><span>EXAM · "+f.req+"</span><span class='"+(pass?"ok":"no")+"' style='color:var(--"+(pass?"ac":"danger")+")'>"+(pass?"✓ YOU QUALIFY":"✗ YOU DO NOT QUALIFY")+"</span></div>"+
    "<button class='btn "+(pass?"gold":"")+"' id='face' style='margin-top:14px'>FACE THE FILTER</button></div>";
@@ -1050,6 +1069,7 @@ function showFilterIntro(){
 }
 
 function faceFilter(){
+  if(lapseActive)return;
   var f=ERAS[curEra].filter;
   var prev=snap();
   var fr=f.resolve(S,uiRng);
@@ -1138,7 +1158,11 @@ function forensicHTML(res){
   }else if(d.cause==="filter"){
     body="<b>You failed the exam.</b>"+(res.filterFail?" The filter demanded: <b>"+res.filterFail.req+"</b> — and the forecast told you at the start of the age.":"")+" Filters are public. The corridor gives you the whole age to prepare.";
   }
-  return "<div class='forensic'><div class='ft'>CAUSE OF DEATH — WHAT ACTUALLY HAPPENED</div><p>"+body+"</p></div>";
+  var closer=ELDER_CLOSE[d.cause]||"";
+  var filing="I file "+(S.who||"this line")+" under CLOSED, in age "+(res.era+1)+" of seven. The shelf is very long; you are not nowhere on it.";
+  return "<div class='forensic'><div class='ft'><span class='glyph'>◈</span> THE ELDER CLOSES THE RECORD</div><p>"+body+"</p>"+
+    (closer?"<p class='eldergloss'>"+closer+"</p>":"")+
+    "<p class='elder' style='margin-top:10px'>"+filing+"</p></div>";
 }
 
 function showEnding(res){
@@ -1162,6 +1186,7 @@ function showEnding(res){
   var html="<div class='plaque'>"+
    "<div class='eyebrow'>"+(isDeath?"CIVILIZATION TERMINATED":res.end==="transcend"?"TRANSCENDENCE":"FINAL RECORD")+"</div>"+
    "<div class='arch'>"+arch+"</div><p class='ep'>"+ep+"</p>"+
+   ((!isDeath&&ENDINGS[res.end]&&ENDINGS[res.end].eu)?"<p class='eu'><span class='glyph'>◈</span> "+ENDINGS[res.end].eu.replace(/\{who\}/g,S.who||"you")+"</p>":"")+
    "<div class='row'><div><b>"+kt+"</b><span>REACHED</span></div><div><b>"+(res.era+1)+"/"+ERAS.length+"</b><span>AGES</span></div><div><b>"+score+"</b><span>SCORE</span></div></div>"+
    "<div class='doctbar'>"+seg(S.doct.dom,"mn")+seg(S.doct.tra,"pw")+seg(S.doct.sym,"ac")+seg(S.doct.iso,"in")+"</div>"+
    "<div class='doctkey'><span style='color:var(--mn)'>DOMINION</span><span style='color:var(--pw)'>TRADE</span><span style='color:var(--ac)'>SYMBIOSIS</span><span style='color:var(--in)'>ISOLATION</span></div>"+
