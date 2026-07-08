@@ -140,6 +140,22 @@
   var scrimBase = [8, 6, 3, 0.55];
   var vignette = 0.85;
 
+  // still-image layer (Tier-2). Degrades silently to gradient+particles (Tier-1).
+  var imgA, imgB;
+  var imgTop = true;              // which img is currently on top (visible)
+  var imgEnabled = true;         // config `images:false` disables the layer
+  var imgBase = "assets/img/";   // config `imgBase` overrides
+  var defaultFocus = "center 35%"; // keep bright subject off the vertical centre
+  var avifSupported = null;      // null = detection pending, then true/false
+  var pendingImgScene = null;    // scene awaiting AVIF detection to resolve
+  var imgToken = 0;              // guards against out-of-order decodes
+  var curImgKey = "";            // scene+orient+fmt actually shown (dedupes work)
+  var lastPreloaded = null;      // never prefetch more than current + this one
+  var idleId = 0;
+  var idleIsTimeout = false;      // true when idleId is a setTimeout handle
+  // preload chain: title -> era-0 ... -> era-6; era-6 and end-* preload nothing.
+  var SCENE_ORDER = ["title", "era-0", "era-1", "era-2", "era-3", "era-4", "era-5", "era-6"];
+
   // transient effects
   var lapse = [];                 // {x,y,vx,vy,life,max,len} small fixed array
   var LAPSE_N = 6;
@@ -222,17 +238,28 @@
     // 1. gradient wash A/B (crossfaded on set)
     washA = makeDiv(base + "opacity:1;transition:opacity 1.2s ease;");
     washB = makeDiv(base + "opacity:0;transition:opacity 1.2s ease;");
-    // (image/video layers would slot in here later, between wash and canvas)
-    // 2. particle canvas
+    // 2. still-image A/B (crossfaded on set; between wash and canvas). Any
+    //    load/decode failure just leaves these transparent → clean Tier-1.
+    var imgCss = base + "width:100%;height:100%;object-fit:cover;opacity:0;" +
+      "object-position:" + defaultFocus + ";transition:opacity 1.2s ease;";
+    imgA = D.createElement("img"); imgA.style.cssText = imgCss;
+    imgB = D.createElement("img"); imgB.style.cssText = imgCss;
+    imgA.decoding = "async"; imgB.decoding = "async";
+    imgA.alt = ""; imgB.alt = "";
+    // swallow late errors so a 404/abort never reaches the console
+    imgA.onerror = imgB.onerror = function () { this.style.opacity = "0"; };
+    // 3. particle canvas
     canvas = D.createElement("canvas");
     canvas.style.cssText = base + "opacity:1;";
-    // 3. scrim vignette + tint
+    // 4. scrim vignette + tint
     scrim = makeDiv(base + "transition:background 0.6s ease;");
     // fx overlay for transient flashes (lapse / filter)
     fx = makeDiv(base + "opacity:0;transition:opacity 0.18s ease;mix-blend-mode:screen;");
 
     root.appendChild(washA);
     root.appendChild(washB);
+    root.appendChild(imgA);
+    root.appendChild(imgB);
     root.appendChild(canvas);
     root.appendChild(scrim);
     root.appendChild(fx);
@@ -257,6 +284,9 @@
     recount();
     if (cur) seedAll(true);
     if (reduced) renderStatic();
+    // orientation may have flipped (portrait<->landscape): reload the matching
+    // still. curImgKey dedupes, so no refetch when the orient is unchanged.
+    if (sceneName) showImage(sceneName);
   }
 
   function recount() {
@@ -538,11 +568,123 @@
     return glow + "," + edgeGlow + "," + linear;
   }
 
+  /* ---------------------------- IMAGE LAYER --------------------------------- */
+  // Minimal 2x2 AVIF data-URI probe for one-time feature detection (decodes
+  // only where AV1/AVIF is supported).
+  var AVIF_PROBE = "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlh" +
+    "Zk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aW" +
+    "YAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAA" +
+    "AAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAA" +
+    "AAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIA" +
+    "BoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEAwgMg8f8D///8Wfhw" +
+    "B8+ErK42A=";
+
+  function detectAvif() {
+    var im = new Image();
+    im.onload = function () { avifSupported = (im.width > 0); flushPending(); };
+    im.onerror = function () { avifSupported = false; flushPending(); };
+    try { im.src = AVIF_PROBE; } catch (e) { avifSupported = false; flushPending(); }
+  }
+  function flushPending() {
+    if (pendingImgScene) {
+      var s = pendingImgScene; pendingImgScene = null;
+      showImage(s);
+      scheduleNextPreload(s);   // detection was pending when set() first ran
+    }
+  }
+
+  function orient() { return (W.innerHeight >= W.innerWidth) ? "p" : "l"; }
+  function fmtExt() { return avifSupported ? "avif" : "jpg"; }
+  function stillUrl(scene) { return imgBase + scene + "-" + orient() + "." + fmtExt(); }
+
+  function sceneFocus(scene) {
+    var sc = cfg.scenes[scene];
+    return (sc && sc.focus) ? sc.focus : defaultFocus;
+  }
+
+  // Crossfade the scene's still in. Gated on decode() so no half-decoded flash.
+  // Any failure degrades silently (no console noise, gradient/particles remain).
+  function showImage(scene) {
+    if (!imgEnabled || !imgA) return;
+    if (avifSupported === null) { pendingImgScene = scene; return; }
+    var url = stillUrl(scene);
+    var key = scene + "-" + orient() + "-" + fmtExt();
+    if (key === curImgKey) return;            // already showing this exact still
+    var token = ++imgToken;
+    var loader = new Image();
+    loader.decoding = "async";
+    var done = false;
+    var reveal = function () {
+      if (done) return; done = true;
+      if (token !== imgToken) return;         // a newer set() superseded us
+      var incoming = imgTop ? imgB : imgA;
+      var outgoing = imgTop ? imgA : imgB;
+      incoming.onerror = function () { this.style.opacity = "0"; };
+      incoming.style.objectPosition = sceneFocus(scene);
+      incoming.src = url;                     // cached+decoded → no flash
+      incoming.style.opacity = "1";
+      outgoing.style.opacity = "0";
+      imgTop = !imgTop;
+      curImgKey = key;
+    };
+    var fail = function () { done = true; /* silent: stay Tier-1 */ };
+    loader.onerror = fail;
+    loader.src = url;
+    if (loader.decode) {
+      // decode() resolves once fully decoded, rejects on load/decode failure.
+      loader.decode().then(reveal, fail);
+    } else {
+      loader.onload = reveal;                 // legacy fallback
+    }
+  }
+
+  // Prefetch a scene's still (current orient+fmt) via a throwaway Image. Never
+  // fetches beyond current + one-ahead: guarded by lastPreloaded + curImgKey.
+  function prefetchStill(scene) {
+    if (!imgEnabled || !scene) return;
+    if (avifSupported === null) return;       // wait until format is known
+    if (scene === sceneName) return;          // that's the current still
+    if (scene === lastPreloaded) return;      // already prefetched
+    lastPreloaded = scene;
+    var im = new Image();
+    im.onerror = function () {};              // swallow 404/abort silently
+    im.decoding = "async";
+    im.src = stillUrl(scene);
+  }
+
+  function nextScene(scene) {
+    if (!scene || scene.indexOf("end-") === 0) return null;
+    var i = SCENE_ORDER.indexOf(scene);
+    if (i < 0 || i >= SCENE_ORDER.length - 1) return null; // unknown or era-6
+    return SCENE_ORDER[i + 1];
+  }
+
+  function cancelIdle() {
+    if (!idleId) return;
+    if (idleIsTimeout) W.clearTimeout(idleId);
+    else if (W.cancelIdleCallback) W.cancelIdleCallback(idleId);
+    idleId = 0;
+  }
+
+  // After a successful set(), preload exactly the next scene, on idle. Any
+  // pending (now-stale) preload from a previous scene is cancelled first, so
+  // we never fetch beyond current + one-ahead.
+  function scheduleNextPreload(scene) {
+    cancelIdle();
+    var nxt = nextScene(scene);
+    if (!nxt) return;
+    var run = function () { idleId = 0; prefetchStill(nxt); };
+    if (W.requestIdleCallback) { idleIsTimeout = false; idleId = W.requestIdleCallback(run, { timeout: 1200 }); }
+    else { idleIsTimeout = true; idleId = W.setTimeout(run, 300); }
+  }
+
   /* ------------------------------- PUBLIC ----------------------------------- */
   function resolveConfig() {
     var c = W.ATMOS_CONFIG;
     if (c && c.scenes && typeof c.scenes === "object") cfg = c;
     else cfg = DEFAULT;
+    imgEnabled = !(c && c.images === false);
+    imgBase = (c && typeof c.imgBase === "string") ? c.imgBase : "assets/img/";
   }
 
   function applyScene(name, immediate) {
@@ -579,6 +721,10 @@
     applyScrim();
     seedAll(true);
     if (reduced) renderStatic();
+
+    // Tier-2 still: crossfade in, then preload exactly one scene ahead.
+    showImage(name);
+    scheduleNextPreload(name);
     return true;
   }
 
@@ -593,6 +739,7 @@
       } catch (e) { reduced = false; }
 
       buildLayers();
+      if (imgEnabled && avifSupported === null) detectAvif();
       resize();
       applyScene(opts.scene || "title", true);
 
@@ -661,7 +808,9 @@
     },
 
     preload: function (scene) {
-      // reserved image-preload hook — safe no-op for now.
+      // Prefetch this scene's still (current orient+fmt) via a throwaway
+      // Image(). Guards keep total fetches to current + at most one ahead.
+      if (inited && scene) prefetchStill(scene);
       return Atmos;
     },
 
@@ -673,9 +822,11 @@
       W.removeEventListener("resize", onResize, false);
       D.removeEventListener("visibilitychange", onVisibility, false);
       if (W.clearTimeout) W.clearTimeout(resizeTimer);
+      cancelIdle();
       if (root) { while (root.firstChild) root.removeChild(root.firstChild); }
       inited = false;
-      root = washA = washB = canvas = ctx = scrim = fx = null;
+      imgToken++; curImgKey = ""; pendingImgScene = null; lastPreloaded = null;
+      root = washA = washB = imgA = imgB = canvas = ctx = scrim = fx = null;
       return Atmos;
     }
   };
