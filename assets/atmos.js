@@ -8,6 +8,9 @@
  * when absent, so the engine always renders). Shape:
  *
  *   window.ATMOS_CONFIG = {
+ *     imgBase: "assets/img/",   // optional; still-image base path (trailing /).
+ *     vidBase: "assets/vid/",   // optional; video-loop base path (trailing /).
+ *     images:  true,            // optional; false forces Tier-1 (no stills).
  *     scenes: {
  *       "<name>": {
  *         grad:     [css color, ...]  // linear base stops, top->bottom.
@@ -18,6 +21,10 @@
  *         density:  0..1              // multiplier on particle count.
  *         scrim:    "rgba(r,g,b,a)"   // vignette tint overlay colour.
  *         vignette: 0..1              // edge-darkening strength.
+ *         focus:    "center 35%"      // optional; object-position for still+video.
+ *         video:    true              // optional; play vidBase+scene+".mp4" loop
+ *                                     //   (gated off for reduced-motion / Save-Data
+ *                                     //   / 2G / deviceMemory<4 — still shows instead).
  *       }, ...
  *     }
  *   }
@@ -46,12 +53,12 @@
       "title": {
         grad: ["#0a0906", "#0a0906", "#070604", "#050403"],
         accent: "#F2B44C", preset: "drift", density: 0.85,
-        scrim: "rgba(8,6,3,0.55)", vignette: 0.85
+        scrim: "rgba(8,6,3,0.55)", vignette: 0.85, video: true
       },
       "era-0": {
         grad: ["#12100a", "#0b0906", "#070503", "#040302"],
         accent: "#F2B44C", preset: "embers", density: 0.9,
-        scrim: "rgba(12,7,3,0.5)", vignette: 0.8
+        scrim: "rgba(12,7,3,0.5)", vignette: 0.8, video: true
       },
       "era-1": {
         grad: ["#140f08", "#0d0805", "#080503", "#050302"],
@@ -81,7 +88,7 @@
       "era-6": {
         grad: ["#1a140a", "#120d07", "#0b0805", "#060403"],
         accent: "#FFE9C2", preset: "dawn", density: 0.9,
-        scrim: "rgba(14,10,5,0.45)", vignette: 0.72
+        scrim: "rgba(14,10,5,0.45)", vignette: 0.72, video: true
       },
       "end-death": {
         grad: ["#100504", "#0a0302", "#060202", "#030101"],
@@ -155,6 +162,14 @@
   var idleIsTimeout = false;      // true when idleId is a setTimeout handle
   // preload chain: title -> era-0 ... -> era-6; era-6 and end-* preload nothing.
   var SCENE_ORDER = ["title", "era-0", "era-1", "era-2", "era-3", "era-4", "era-5", "era-6"];
+
+  // video-loop layer (Tier-3). Only marquee scenes with `video:true` and only
+  // when device/prefs gating allows; otherwise the still remains the top frame.
+  var vid = null;                // single <video> element
+  var vidBase = "assets/vid/";   // config `vidBase` overrides
+  var vidToken = 0;              // guards against out-of-order canplay handlers
+  var vidScene = null;           // scene whose src is currently on the element
+  var vidAllowed = null;         // null until computed; then true/false (device gate)
 
   // transient effects
   var lapse = [];                 // {x,y,vx,vy,life,max,len} small fixed array
@@ -248,10 +263,23 @@
     imgA.alt = ""; imgB.alt = "";
     // swallow late errors so a 404/abort never reaches the console
     imgA.onerror = imgB.onerror = function () { this.style.opacity = "0"; };
-    // 3. particle canvas
+    // 3. video loop (above stills, below canvas). Only marquee scenes with
+    //    video:true set a src; the still stays underneath as poster/fallback.
+    vid = D.createElement("video");
+    vid.style.cssText = base + "width:100%;height:100%;object-fit:cover;opacity:0;" +
+      "object-position:" + defaultFocus + ";transition:opacity 1s ease;";
+    vid.muted = true; vid.playsInline = true;   // properties for iOS
+    vid.setAttribute("muted", "");
+    vid.setAttribute("playsinline", "");
+    vid.setAttribute("loop", "");
+    vid.setAttribute("preload", "none");
+    vid.setAttribute("disableremoteplayback", "");
+    vid.loop = true;
+    vid.onerror = function () { this.style.opacity = "0"; }; // swallow load errors
+    // 4. particle canvas
     canvas = D.createElement("canvas");
     canvas.style.cssText = base + "opacity:1;";
-    // 4. scrim vignette + tint
+    // 5. scrim vignette + tint
     scrim = makeDiv(base + "transition:background 0.6s ease;");
     // fx overlay for transient flashes (lapse / filter)
     fx = makeDiv(base + "opacity:0;transition:opacity 0.18s ease;mix-blend-mode:screen;");
@@ -260,6 +288,7 @@
     root.appendChild(washB);
     root.appendChild(imgA);
     root.appendChild(imgB);
+    root.appendChild(vid);
     root.appendChild(canvas);
     root.appendChild(scrim);
     root.appendChild(fx);
@@ -678,6 +707,80 @@
     else { idleIsTimeout = true; idleId = W.setTimeout(run, 300); }
   }
 
+  /* ---------------------------- VIDEO LAYER --------------------------------- */
+  // Device/preference gate — computed once. When false, no marquee scene ever
+  // sets a video src (the still stays the top frame). Reasons: reduced-motion,
+  // Save-Data / 2G, or low device memory (<4GB).
+  function computeVidAllowed() {
+    try {
+      if (W.matchMedia && W.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+    } catch (e) {}
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn) {
+      if (conn.saveData) return false;
+      if (conn.effectiveType && /2g/.test(conn.effectiveType)) return false;
+    }
+    if (typeof navigator.deviceMemory === "number" && navigator.deviceMemory < 4) return false;
+    return true;
+  }
+
+  function sceneHasVideo(scene) {
+    var sc = cfg.scenes[scene];
+    return !!(sc && sc.video === true);
+  }
+
+  // Fade the video layer out, pause it, and drop its src so it stops
+  // downloading. Leaves the still + particles as the visible frame.
+  function stopVideo() {
+    if (!vid) return;
+    vidToken++;                    // invalidate any in-flight canplay handler
+    vid.style.opacity = "0";
+    try { vid.pause(); } catch (e) {}
+    if (vidScene !== null) {
+      try { vid.removeAttribute("src"); vid.load(); } catch (e) {}  // halt network
+      vidScene = null;
+    }
+  }
+
+  // For a scene, either start its loop (video:true + gate passes) or stop the
+  // layer. On canplay, fade in over ~1s atop the still. .play() rejection
+  // (e.g. iOS Low Power Mode) hides the layer silently.
+  function updateVideo(scene) {
+    if (!vid) return;
+    if (vidAllowed === null) vidAllowed = computeVidAllowed();
+    if (!vidAllowed || !sceneHasVideo(scene)) { stopVideo(); return; }
+    if (vidScene === scene) { tryPlay(); return; }   // already loaded this scene
+    var token = ++vidToken;
+    vidScene = scene;
+    vid.style.objectPosition = sceneFocus(scene);
+    vid.style.opacity = "0";                          // stay hidden until ready
+    var onReady = function () {
+      vid.removeEventListener("canplay", onReady);
+      if (token !== vidToken) return;                // superseded by newer set()
+      tryPlay(token);
+    };
+    vid.addEventListener("canplay", onReady);
+    try {
+      vid.src = vidBase + scene + ".mp4";
+      vid.load();
+    } catch (e) { stopVideo(); }
+  }
+
+  function tryPlay(token) {
+    if (!vid) return;
+    var p;
+    try { p = vid.play(); } catch (e) { vid.style.opacity = "0"; return; }
+    var reveal = function () {
+      if (token != null && token !== vidToken) return;
+      vid.style.opacity = "1";                        // fade in over the still
+    };
+    if (p && typeof p.then === "function") {
+      p.then(reveal, function () { vid.style.opacity = "0"; /* silent */ });
+    } else {
+      reveal();
+    }
+  }
+
   /* ------------------------------- PUBLIC ----------------------------------- */
   function resolveConfig() {
     var c = W.ATMOS_CONFIG;
@@ -685,6 +788,7 @@
     else cfg = DEFAULT;
     imgEnabled = !(c && c.images === false);
     imgBase = (c && typeof c.imgBase === "string") ? c.imgBase : "assets/img/";
+    vidBase = (c && typeof c.vidBase === "string") ? c.vidBase : "assets/vid/";
   }
 
   function applyScene(name, immediate) {
@@ -725,6 +829,8 @@
     // Tier-2 still: crossfade in, then preload exactly one scene ahead.
     showImage(name);
     scheduleNextPreload(name);
+    // Tier-3 video loop: start on marquee scenes (gated), else stop the layer.
+    updateVideo(name);
     return true;
   }
 
@@ -823,10 +929,12 @@
       D.removeEventListener("visibilitychange", onVisibility, false);
       if (W.clearTimeout) W.clearTimeout(resizeTimer);
       cancelIdle();
+      stopVideo();
       if (root) { while (root.firstChild) root.removeChild(root.firstChild); }
       inited = false;
       imgToken++; curImgKey = ""; pendingImgScene = null; lastPreloaded = null;
-      root = washA = washB = imgA = imgB = canvas = ctx = scrim = fx = null;
+      vidToken++; vidScene = null;
+      root = washA = washB = imgA = imgB = vid = canvas = ctx = scrim = fx = null;
       return Atmos;
     }
   };
@@ -841,8 +949,14 @@
   }
   function onVisibility() {
     if (!inited) return;
-    if (D.hidden) stopLoop();
-    else startLoop();
+    if (D.hidden) {
+      stopLoop();
+      if (vid && vidScene) { try { vid.pause(); } catch (e) {} }  // pause the loop
+    } else {
+      startLoop();
+      // resume video only if the current scene actually has a running loop
+      if (vid && vidScene && vidScene === sceneName) tryPlay(vidToken);
+    }
   }
 
   W.Atmos = Atmos;

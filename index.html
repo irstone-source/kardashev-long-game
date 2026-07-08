@@ -270,15 +270,16 @@ button{font:inherit;color:var(--ink);cursor:pointer;border:none;background:none}
 window.ATMOS_CONFIG = {
   imgBase: "assets/img/",
   images: true,
+  vidBase: "assets/vid/",
   scenes: {
-    "title":         { grad: ["#0a0906","#0a0906","#070604","#050403"], accent: "#F2B44C", preset: "drift",      density: 0.85, scrim: "rgba(8,6,3,0.55)",   vignette: 0.85, focus: "center 30%" },
-    "era-0":         { grad: ["#12100a","#0b0906","#070503","#040302"], accent: "#F2B44C", preset: "embers",     density: 0.9,  scrim: "rgba(12,7,3,0.5)",   vignette: 0.8,  focus: "center 40%" },
+    "title":         { grad: ["#0a0906","#0a0906","#070604","#050403"], accent: "#F2B44C", preset: "drift",      density: 0.85, scrim: "rgba(8,6,3,0.55)",   vignette: 0.85, focus: "center 30%", video: true },
+    "era-0":         { grad: ["#12100a","#0b0906","#070503","#040302"], accent: "#F2B44C", preset: "embers",     density: 0.9,  scrim: "rgba(12,7,3,0.5)",   vignette: 0.8,  focus: "center 40%", video: true },
     "era-1":         { grad: ["#140f08","#0d0805","#080503","#050302"], accent: "#F2A03C", preset: "wind",       density: 0.9,  scrim: "rgba(14,8,3,0.5)",   vignette: 0.78, focus: "center 40%" },
     "era-2":         { grad: ["#04121a","#030c12","#02080c","#020406"], accent: "#5EC6E8", preset: "starstream", density: 0.8,  scrim: "rgba(3,10,16,0.52)", vignette: 0.82, focus: "center 35%" },
     "era-3":         { grad: ["#0d0718","#090511","#06040c","#040207"], accent: "#B48CF2", preset: "deepfield",  density: 0.7,  scrim: "rgba(8,5,16,0.55)",  vignette: 0.85, focus: "center 30%" },
     "era-4":         { grad: ["#0a0716","#07050f","#05040b","#030206"], accent: "#9B8CF2", preset: "deepfield",  density: 0.65, scrim: "rgba(6,5,14,0.58)",  vignette: 0.88, focus: "center 30%" },
     "era-5":         { grad: ["#160806","#0f0604","#0a0403","#050202"], accent: "#E86A5B", preset: "embers",     density: 0.85, scrim: "rgba(16,5,3,0.55)",  vignette: 0.82, focus: "center 45%" },
-    "era-6":         { grad: ["#1a140a","#120d07","#0b0805","#060403"], accent: "#FFE9C2", preset: "dawn",       density: 0.9,  scrim: "rgba(14,10,5,0.45)", vignette: 0.72, focus: "center 25%" },
+    "era-6":         { grad: ["#1a140a","#120d07","#0b0805","#060403"], accent: "#FFE9C2", preset: "dawn",       density: 0.9,  scrim: "rgba(14,10,5,0.45)", vignette: 0.72, focus: "center 25%", video: true },
     "end-death":     { grad: ["#100504","#0a0302","#060202","#030101"], accent: "#8A3B34", preset: "embers",     density: 0.35, scrim: "rgba(10,3,2,0.62)",  vignette: 0.92, focus: "center 45%" },
     "end-transcend": { grad: ["#1c160c","#141009","#0c0906","#050403"], accent: "#FFE9C2", preset: "dawn",       density: 1.0,  scrim: "rgba(16,12,6,0.4)",  vignette: 0.68, focus: "center 25%" },
     "end-survive":   { grad: ["#100c07","#0b0805","#070503","#040302"], accent: "#C9A15E", preset: "drift",      density: 0.8,  scrim: "rgba(10,7,3,0.52)",  vignette: 0.8,  focus: "center 40%" }
