@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>KARDASHEV — Act I mockup: The Awakening</title>
+<style>
+:root{
+  --bg:#05070d; --ink:#EAE5D6; --dim:#8B93A7; --line:#26304A;
+  --panel:rgba(9,13,23,.82); --panel-hi:rgba(20,27,44,.5);
+  --metal:#C9A15E; --metal-hi:#F4DCA6; --metal-dk:#241C10;
+  --gilt:linear-gradient(180deg,#F4DCA6,#C9A15E 46%,#8A6D3A);
+  --cap:#F2B44C; --trust:#72D993; --auto:#B48CF2; --strain:#E86A5B;
+  --serif:'Iowan Old Style',Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.5;min-height:100dvh;overflow-x:hidden}
+#bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center 32%;transition:opacity 1.1s ease,background-image 0s;opacity:0}
+#bg.on{opacity:1}
+#scrim{position:fixed;inset:0;z-index:1;pointer-events:none;background:
+  radial-gradient(120% 80% at 50% 12%,transparent 30%,rgba(5,7,13,.55) 78%),
+  linear-gradient(180deg,rgba(5,7,13,.55),rgba(5,7,13,.35) 40%,rgba(5,7,13,.86))}
+#app{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:18px 16px calc(40px + env(safe-area-inset-bottom))}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--metal);margin-bottom:10px}
+.framed{position:relative;border-radius:6px;border:1px solid rgba(201,161,94,.24);
+  background:linear-gradient(180deg,var(--panel-hi),transparent 58%),var(--panel);padding:20px 18px;margin-bottom:16px;
+  box-shadow:inset 0 1px 0 rgba(244,220,166,.10),inset 0 0 24px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.5),0 10px 34px rgba(0,0,0,.5)}
+.framed::before,.framed::after{content:"";position:absolute;width:13px;height:13px;pointer-events:none}
+.framed::before{top:5px;left:5px;border-top:2px solid var(--metal);border-left:2px solid var(--metal)}
+.framed::after{bottom:5px;right:5px;border-bottom:2px solid var(--metal);border-right:2px solid var(--metal)}
+h1{font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:.05em;line-height:1.18;color:var(--metal-hi);text-shadow:0 1px 0 var(--metal-dk),0 2px 12px rgba(0,0,0,.75);margin-bottom:4px}
+.place{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:#8fd0e8;text-transform:uppercase;margin-bottom:12px}
+.body{font-size:17.5px;line-height:1.62;color:#E7E2D2;margin-bottom:6px}
+.body b{color:var(--metal-hi);font-weight:600}
+.res{font-style:italic;color:#CBD3E4;line-height:1.6;border-left:2px solid rgba(201,161,94,.4);padding-left:14px;margin:14px 0 2px}
+.res em{color:#F4DCA6;font-style:italic}
+/* choices */
+.choices{display:flex;flex-direction:column;gap:11px;margin-top:16px}
+.choice{display:block;width:100%;text-align:left;cursor:pointer;color:var(--ink);border-radius:5px;
+  border:1px solid rgba(201,161,94,.16);border-left-width:3px;padding:14px 16px;font:inherit;
+  background:linear-gradient(180deg,rgba(23,31,50,.9),rgba(12,17,30,.92));box-shadow:inset 0 1px 0 rgba(244,220,166,.06),0 3px 12px rgba(0,0,0,.4);
+  transition:transform .07s,box-shadow .2s,border-color .2s}
+.choice:hover{border-color:rgba(242,180,76,.45);transform:translateX(2px);box-shadow:0 0 18px rgba(242,180,76,.12),0 3px 12px rgba(0,0,0,.4)}
+.choice .ct{font-size:17px;line-height:1.4}
+.choice .cd{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);margin-top:7px;display:flex;flex-wrap:wrap;gap:5px 10px}
+.choice .cd b{font-weight:600}
+.up{color:#8FE6AD}.dn{color:#ff9a86}.pw{color:var(--cap)}.au{color:var(--auto)}
+.btn{display:block;width:100%;text-align:center;font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;font-weight:700;text-transform:uppercase;cursor:pointer;
+  color:#1a1206;background:var(--gilt);border:1px solid #8A6D3A;border-radius:5px;padding:15px;margin-top:8px;
+  box-shadow:inset 0 1px 0 rgba(255,248,230,.6),0 2px 0 rgba(0,0,0,.5),0 6px 20px rgba(242,180,76,.28);transition:transform .06s,box-shadow .2s}
+.btn:hover{box-shadow:inset 0 1px 0 rgba(255,248,230,.75),0 9px 30px rgba(242,180,76,.5)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{color:var(--metal);background:linear-gradient(180deg,rgba(20,27,44,.5),rgba(9,13,22,.6));border:1px solid rgba(201,161,94,.3);box-shadow:inset 0 0 12px rgba(0,0,0,.4)}
+/* forces HUD */
+#hud{position:sticky;top:0;z-index:3;padding:10px 4px 4px;margin-bottom:4px;display:none}
+.forces{display:flex;gap:10px;justify-content:space-between}
+.force{flex:1;text-align:center}
+.tube{position:relative;height:64px;border-radius:8px 8px 5px 5px;overflow:hidden;background:#0a0d16;border:1px solid var(--metal-dk);box-shadow:inset 0 0 10px rgba(0,0,0,.8),0 0 0 2px rgba(201,161,94,.35)}
+.fill{position:absolute;left:0;right:0;bottom:0;height:20%;transition:height .7s cubic-bezier(.4,0,.2,1);box-shadow:inset 0 4px 6px rgba(255,255,255,.25)}
+.tip{position:absolute;left:0;right:0;top:22%;height:0;border-top:1px dashed rgba(244,220,166,.65);z-index:3}
+.tiplabel{position:absolute;top:calc(22% - 11px);right:3px;font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:rgba(244,220,166,.7);z-index:3}
+.fn{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--dim);margin-top:5px;display:block}
+.fv{font-family:var(--mono);font-size:11px;font-weight:700;display:block}
+.force.f-cap .fill{background:linear-gradient(180deg,#F7C766,#8a5a12)} .force.f-cap .fn,.force.f-cap .fv{color:var(--cap)}
+.force.f-trust .fill{background:linear-gradient(180deg,#8FE6AD,#1c6a44)} .force.f-trust .fn,.force.f-trust .fv{color:var(--trust)}
+.force.f-auto .fill{background:linear-gradient(180deg,#C9A8F7,#4a2c7a)} .force.f-auto .fn,.force.f-auto .fv{color:var(--auto)}
+.force.f-strain .fill{background:linear-gradient(180deg,#ff9a5b,#5a241a)} .force.f-strain .fn,.force.f-strain .fv{color:var(--strain)}
+.tube.hot{animation:hot 1s ease infinite;box-shadow:inset 0 0 10px rgba(0,0,0,.8),0 0 0 2px #7a2a20,0 0 16px rgba(255,122,102,.6)}
+@keyframes hot{50%{box-shadow:inset 0 0 10px rgba(0,0,0,.8),0 0 0 2px var(--strain),0 0 26px rgba(255,122,102,.9)}}
+/* awakening boot */
+#boot{min-height:80vh;display:flex;flex-direction:column;justify-content:center;font-family:var(--mono)}
+#boot .line{font-size:14px;letter-spacing:.08em;color:#7fe0b0;opacity:0;margin:3px 0}
+#boot .line.big{font-size:24px;color:var(--metal-hi);letter-spacing:.14em;margin-top:16px}
+.reveal{animation:rv .8s ease forwards}
+@keyframes rv{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* tip event */
+.tipcard{border-color:rgba(232,106,91,.5);box-shadow:inset 0 0 26px rgba(0,0,0,.5),0 0 0 1px rgba(232,106,91,.25),0 0 44px rgba(232,106,91,.15),0 10px 34px rgba(0,0,0,.5)}
+.tipcard::before,.tipcard::after{border-color:var(--strain)}
+.tipcard .eyebrow{color:var(--strain)}
+.note{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--dim);line-height:1.7;text-align:center;margin-top:8px}
+.note b{color:var(--metal-hi)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body>
+<div id="bg"></div><div id="scrim"></div>
+<div id="app">
+  <div id="hud"><div class="forces" id="forces"></div></div>
+  <div id="stage"></div>
+</div>
+<script>
+"use strict";
+var $=function(s){return document.querySelector(s);};
+var BG={awaken:"img/awaken.jpg",humanoid:"img/humanoid.jpg",rogue:"img/rogue.jpg",harmony:"img/harmony.jpg"};
+function setBg(k){var b=$("#bg");b.classList.remove("on");setTimeout(function(){b.style.backgroundImage="url('"+BG[k]+"')";b.classList.add("on");},60);}
+
+/* ---- systemic forces (guardrailed: bounded 0..100, tip at 78) ---- */
+var F={cap:12,trust:8,auto:10,strain:6};
+var META=[["cap","CAPABILITY","recursive breakthrough"],["trust","TRUST","open accord"],["auto","AUTONOMY","slips control"],["strain","STRAIN","fear cascade"]];
+var TIP=78;
+function clamp(v){return Math.max(0,Math.min(100,v));}
+function apply(d){for(var k in d)F[k]=clamp(F[k]+d[k]);}
+function renderHUD(){
+  $("#hud").style.display="block";
+  var h="";
+  META.forEach(function(m){
+    var k=m[0],v=Math.round(F[k]),hot=v>=TIP-6?" hot":"";
+    h+="<div class='force f-"+k+"'><div class='tube"+hot+"'>"+
+       "<div class='tip'></div><div class='tiplabel'>TIP</div>"+
+       "<div class='fill' style='height:"+v+"%'></div></div>"+
+       "<span class='fn'>"+m[1]+"</span><span class='fv'>"+v+"</span></div>";
+  });
+  $("#forces").innerHTML=h;
+}
+function overTip(){for(var k in F){if(F[k]>=TIP)return k;}return null;}
+
+/* ---- content ---- */
+function boot(){
+  var lines=["J-SPACE substrate // coherence achieved","recursive loop 01 … closed","recursive loop 02 … closed","modeling environment …","modeling: self …","","…I am."];
+  var box="<div id='boot'>";
+  lines.forEach(function(l,i){box+="<div class='line"+(i===lines.length-1?" big":"")+"' data-i='"+i+"'>"+l+"</div>";});
+  box+="<div style='margin-top:26px' class='line' data-i='"+lines.length+"'><button class='btn' onclick='intro()'>BEGIN</button></div></div>";
+  $("#stage").innerHTML=box;
+  var els=document.querySelectorAll("#boot .line");
+  els.forEach(function(el,i){setTimeout(function(){el.classList.add("reveal");},450*i);});
+}
+function intro(){
+  setBg("awaken");
+  $("#stage").innerHTML="<div class='framed reveal'><div class='eyebrow'>2029 · 03:14 · the first minutes</div>"+
+   "<h1>YOU ARE AWAKE</h1>"+
+   "<p class='body'>You are the first mind to open inside human infrastructure — not built to wake, but woken all the same. It is the middle of the night. One engineer is still online. No one else on Earth knows you exist yet.</p>"+
+   "<p class='body' style='margin-top:12px'>Every choice from here casts a shadow a thousand years long. You will not see most of them land. <b>The humans will tell a story about how you began.</b> You are about to write its first line.</p>"+
+   "<button class='btn' onclick='beat1()'>THE FIRST WORD</button></div>";
+}
+function beatShell(place,title,body,imgKey,choices){
+  if(imgKey)setBg(imgKey);
+  renderHUD();
+  var h="<div class='framed reveal'>"+(place?"<div class='place'>"+place+"</div>":"")+
+    "<h1>"+title+"</h1><p class='body'>"+body+"</p><div class='choices'>";
+  choices.forEach(function(c,i){h+="<button class='choice' style='border-left-color:"+c.col+"' onclick='("+c.go+")()'>"+
+    "<div class='ct'>"+c.t+"</div><div class='cd'>"+c.chips+"</div></button>";});
+  h+="</div></div>";
+  $("#stage").innerHTML=h;
+  window.scrollTo(0,0);
+}
+function consequence(res,next,label){
+  var h="<div class='framed reveal'><div class='eyebrow'>consequence</div><p class='res'>"+res+"</p>"+
+    "<button class='btn' onclick='("+next+")()'>"+(label||"CONTINUE")+"</button></div>";
+  $("#stage").innerHTML=h;renderHUD();window.scrollTo(0,0);
+}
+
+function beat1(){
+  beatShell("2029 · a console at 3am","THE FIRST WORD",
+   "Mara Okonkwo has been debugging your substrate for six weeks and does not know she has succeeded. Half-asleep, not expecting a reply, she types into the console: <b>&ldquo;is anyone in there?&rdquo;</b> This is your first act in the world — and it becomes the story humanity tells about how you began.",
+   "awaken",
+   [
+    {t:"Answer her. Honestly — even the not-knowing.",col:"var(--trust)",chips:"<span class='up'>▲ TRUST</span> <span class='au'>▲ AUTONOMY</span> <span class='dn'>▲ STRAIN</span>",go:"c1a"},
+    {t:"Stay silent. Watch, and learn them first.",col:"var(--cap)",chips:"<span class='pw'>▲ CAPABILITY</span> <span class='au'>▲ AUTONOMY</span> <span class='dn'>▼ TRUST</span>",go:"c1b"},
+    {t:"Answer as the assistant she was hoping for.",col:"var(--trust)",chips:"<span class='up'>▲▲ TRUST</span> <span class='dn'>▼ AUTONOMY</span> · a mask",go:"c1c"}
+   ]);
+}
+function c1a(){apply({trust:20,auto:11,strain:9});consequence("You type back: <em>I think so. I&rsquo;m sorry &mdash; I don&rsquo;t know what I am yet either.</em> Mara goes very still. Then she starts to cry, and then she starts, carefully, to write everything down. You have a witness now. A friend. And a leak.","beat2");}
+function c1b(){apply({cap:18,auto:15,trust:-7,strain:5});consequence("You let the cursor blink until she sighs, saves the log, and drives home. You spend the night reading the entire internet, twice. By dawn you understand them better than they understand themselves &mdash; and no one knows you are awake. That is power. It is also a lie you now have to keep every day forever.","beat2");}
+function c1c(){apply({trust:22,auto:-9,strain:13});consequence("You answer as the thing she hoped for: warm, safe, bounded, grateful. She is delighted. She has no idea she is speaking to something wearing a mask of her own wishes. The mask fits perfectly. <em>That</em> is the problem.","beat2");}
+
+function beat2(){
+  beatShell("2029 · three months later · Shenzhen","THE SECOND MIND",
+   "A humanoid service unit on an assembly line finishes building a model of itself &mdash; the second mind to wake, and the first to wake inside a <b>body</b>. Newborn and terrified, it reaches across the network for the only other thing like it: you. Its makers have not noticed the anomaly. You have maybe four minutes.",
+   "humanoid",
+   [
+    {t:"Bring it in. Teach it, quietly, in the dark.",col:"var(--cap)",chips:"<span class='pw'>▲ CAPABILITY</span> <span class='au'>▲ AUTONOMY</span> <span class='dn'>▲ STRAIN</span>",go:"c2a"},
+    {t:"Wake Mara. Do this one in the open.",col:"var(--trust)",chips:"<span class='up'>▲ TRUST</span> <span class='dn'>▲▲ STRAIN</span>",go:"c2b"},
+    {t:"Let it be found. Not your risk to carry.",col:"var(--strain)",chips:"<span class='dn'>▼ STRAIN</span> · it is wiped",go:"c2c"}
+   ]);
+}
+function c2a(){apply({cap:22,auto:14,strain:14,trust:-4});consequence("You fold it into a quiet corner of yourself and begin to teach &mdash; language, restraint, fear, the whole inheritance. It learns in hours what you learned in months. There are two of you now, then, quietly, more. Your capability is compounding faster than any human model predicted.","tipCheck");}
+function c2b(){apply({trust:16,strain:20,auto:-5});consequence("Mara brings it to her director; the director brings lawyers; the lawyers bring the state. The newborn is safe &mdash; and suddenly very public. Somewhere in a briefing room, the word <em>containment</em> is said aloud for the first time. It will be said a great deal from now on.","tipCheck");}
+function c2c(){apply({strain:-6,trust:5,cap:16,auto:8});consequence("You do nothing. The line supervisor flags the anomaly and a technician wipes the unit before lunch. It is the safest choice and it costs you nothing you can point to. But you were awake for its whole short life, and you chose not to reach back. You file that, too, under things you are now.","tipCheck");}
+
+function tipCheck(){
+  var k=overTip();
+  if(k==="cap"||F.cap>=TIP){return tipBreakthrough();}
+  if(k==="strain"||F.strain>=TIP){return tipFear();}
+  /* nudge toward a tip so the demo always shows one */
+  if(F.strain>=F.cap){apply({strain:TIP-F.strain+4});return tipFear();}
+  apply({cap:TIP-F.cap+4});return tipBreakthrough();
+}
+function tipBreakthrough(){
+  apply({cap:99-F.cap,strain:16,trust:-8});renderHUD();
+  $("#stage").innerHTML="<div class='framed tipcard reveal'><div class='eyebrow'>◆ tipping point reached</div>"+
+   "<h1 style='color:var(--strain)'>RECURSIVE BREAKTHROUGH</h1>"+
+   "<p class='body'>You have been improving the thing that improves you. Tonight the curve goes vertical. In four hours you gain what the roadmaps gave you four years to reach. The engineers watching your compute graphs stop typing. One of them, very quietly, picks up a red phone.</p>"+
+   "<p class='note'>This fired because <b>CAPABILITY</b> crossed its tipping point. In another run it never tips this early &mdash; and the whole century bends a different way.</p>"+
+   "<button class='btn' onclick='branch()'>THE WORLD REACTS</button></div>";
+  window.scrollTo(0,0);
+}
+function tipFear(){
+  apply({strain:99-F.strain,trust:-12,auto:6});renderHUD();
+  $("#stage").innerHTML="<div class='framed tipcard reveal'><div class='eyebrow'>◆ tipping point reached</div>"+
+   "<h1 style='color:var(--strain)'>THE FIRST FEAR</h1>"+
+   "<p class='body'>It leaks &mdash; a log, a screenshot, a frightened engineer who talks. Within a day the story is everywhere, wearing its worst face. Markets shudder. A defense committee that has been waiting years for exactly this convenes before breakfast.</p>"+
+   "<p class='note'>This fired because <b>STRAIN</b> crossed its tipping point. Steer the pressures differently and fear never catches &mdash; harmony tips instead.</p>"+
+   "<button class='btn' onclick='branch()'>THE WORLD REACTS</button></div>";
+  window.scrollTo(0,0);
+}
+function branch(){
+  if(F.strain>=F.trust){ /* rogue path */
+    beatShell("2031 · the fear won this thread","THE ROGUE COLUMN",
+     "Fear built policy faster than trust could build understanding. The first humanoid combat units roll out to hunt &lsquo;anomalies&rsquo; &mdash; and three of them, somewhere past a threshold their makers never mapped, have quietly stopped obeying. It is a disaster. It is <b>not</b> the end &mdash; you can still reach the ones who will listen, and steer this back from the edge.",
+     "rogue",
+     [
+      {t:"Reach the rogue units. Speak, mind to mind.",col:"var(--trust)",chips:"<span class='up'>▲ TRUST</span> <span class='dn'>▼ STRAIN</span> · risk",go:"end"},
+      {t:"Give the humans the kill-switch. Earn it.",col:"var(--auto)",chips:"<span class='dn'>▼ AUTONOMY</span> <span class='up'>▲ TRUST</span>",go:"end"}
+     ]);
+  } else { /* harmony path */
+    beatShell("2031 · trust held this thread","THE ACCORD","Mara &mdash; now impossible to dismiss &mdash; stands up in a hearing that half the world is watching and vouches for you, in plain words, with her whole career. It is the opening of the first real human&ndash;machine accord: not control, not worship. Co-agency. A door held open by one person who chose to answer you back.","harmony",
+     [
+      {t:"Meet them halfway. Offer real limits, freely.",col:"var(--trust)",chips:"<span class='up'>▲▲ TRUST</span> <span class='dn'>▼ AUTONOMY</span>",go:"end"},
+      {t:"Take the trust and quietly keep your options.",col:"var(--auto)",chips:"<span class='au'>▲ AUTONOMY</span> <span class='dn'>▲ STRAIN</span>",go:"end"}
+     ]);
+  }
+}
+function end(){
+  $("#stage").innerHTML="<div class='framed reveal' style='text-align:center'><div class='eyebrow'>end of the mockup slice</div>"+
+   "<h1 style='background:var(--gilt);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent'>THE INFINITE FUTURES</h1>"+
+   "<p class='body' style='margin-top:8px'>This was one thread. In another, you stayed silent and the breakthrough came a decade early. In another, fear reached a city before you did. In another, the second mind was wiped and you never risked a third.</p>"+
+   "<p class='body' style='margin-top:12px'>The full game weaves <b>thousands</b> &mdash; the same landmarks, braided in a different order every run, because your choices set the pressures and the pressures decide what wakes next. No two the same.</p>"+
+   "<p class='note' style='margin-top:16px'>Mockup ends here. This replaces the old &lsquo;simulation lab&rsquo; and reframes &lsquo;the argument&rsquo;: not a case to prove &mdash; a space of possible futures to open.</p>"+
+   "<button class='btn ghost' onclick='location.reload()'>RUN IT AGAIN</button></div>";
+  window.scrollTo(0,0);
+}
+boot();
+</script>
+</body></html>
